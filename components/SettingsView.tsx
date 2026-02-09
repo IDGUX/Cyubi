@@ -716,6 +716,10 @@ Invoke-RestMethod -Uri "http://${host}/api/logs" -Method Post -Body ($body | Con
                                         <div className="flex flex-col gap-1">
                                             <span className="text-sm font-bold">{t("usbSync")}</span>
                                             <span className="text-[10px] text-white/40">{t("usbDesc")}</span>
+                                            <div className="flex items-center gap-1 mt-1">
+                                                <div className="px-1.5 py-0.5 rounded bg-orange-500/10 border border-orange-500/20 text-[8px] text-orange-400 font-bold uppercase">Forensic Mode</div>
+                                                <span className="text-[8px] text-white/20 italic">Append-only + Hardware Sync</span>
+                                            </div>
                                         </div>
                                         <button
                                             onClick={() => setUsbConfig(prev => ({ ...prev, enabled: !prev.enabled }))}

@@ -1,14 +1,41 @@
 const dgram = require('dgram');
 const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
 
 let syslogPort = 514;
 let syslogEnabled = false;
+let usbEnabled = false;
+let usbPath = "";
 let apiUrl = 'http://127.0.0.1:3000/api/logs';
 let settingsUrl = 'http://127.0.0.1:3000/api/settings';
 
-const fs = require('fs');
-const path = require('path');
-const logFile = path.join(__dirname, '../public/receiver.txt');
+function syncToUsb(msg) {
+    if (!usbEnabled || !usbPath) return;
+
+    try {
+        const timestamp = new Date().toISOString();
+        const logLine = `[${timestamp}] ${msg}\n`;
+
+        // Ensure directory exists
+        const dir = path.dirname(usbPath);
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+
+        // Forensic-grade write: Append + Flush to physical media
+        // We open, write, fsync and close every time to ensure the OS 
+        // doesn't keep it in volatile memory in case of power loss.
+        const fd = fs.openSync(usbPath, 'a');
+        fs.appendFileSync(fd, logLine);
+        fs.fsyncSync(fd);
+        fs.closeSync(fd);
+    } catch (e) {
+        if (process.env.NODE_ENV !== 'production') {
+            console.error(`❌ [USB ERROR] Failed to sync to ${usbPath}: ${e.message}`);
+        }
+    }
+}
 
 function logToDisk(msg) {
     if (process.env.NODE_ENV !== 'production') {
@@ -16,11 +43,11 @@ function logToDisk(msg) {
     }
 }
 
-const VERSION = "1.1.0-FIX-PORT";
-logToDisk(`🛰️ Syslog Receiver process started (v${VERSION})`);
+const VERSION = "1.2.0-BLACKBOX";
+logToDisk(`🛰️ LogVault Syslog Receiver started (v${VERSION})`);
 
 let server = null;
-let sources = []; // List of SyslogSource from DB
+let sources = [];
 
 async function fetchConfig() {
     try {
@@ -34,15 +61,17 @@ async function fetchConfig() {
         const newEnabled = data.SYSLOG_ENABLED === 'true';
         let newPort = parseInt(data.SYSLOG_PORT) || 514;
 
-        // CRITICAL FIX: Non-root user in Docker cannot bind to port 514.
-        // We use 5140 internally and map host 514 to it.
+        // USB Blackbox Settings
+        usbEnabled = data.USB_AUTO_SYNC === 'true';
+        usbPath = data.USB_PATH || "";
+
         if (newPort === 514) {
-            logToDisk("⚠️ Port 514 requested, but using 5140 for Docker non-root compatibility.");
+            logToDisk("⚠️ Port 514 requested, but using 5140 for Docker compatibility.");
             newPort = 5140;
         }
 
         if (newEnabled !== syslogEnabled || newPort !== syslogPort) {
-            logToDisk(`Config change detected: Enabled=${newEnabled}, Port=${newPort}`);
+            logToDisk(`Config change: Enabled=${newEnabled}, Port=${newPort}`);
             syslogEnabled = newEnabled;
             syslogPort = newPort;
             restartServer();
@@ -54,19 +83,10 @@ async function fetchConfig() {
             const sourcesRes = await axios.get(`${apiBase}/sources`, { timeout: 2000 });
             if (Array.isArray(sourcesRes.data)) {
                 sources = sourcesRes.data;
-                // console.log(`Loaded ${sources.length} syslog sources`);
-            } else {
-                console.warn('⚠️ Sources API returned non-array data:', typeof sourcesRes.data);
-                sources = [];
             }
-        } catch (e) {
-            // Silently fail if sources API not ready
-        }
+        } catch (e) { }
     } catch (error) {
-        logToDisk(`❌ [CONFIG ERROR] Failed to fetch config: ${error.message}`);
-        if (error.response) {
-            logToDisk(`   Status: ${error.response.status} - Data: ${JSON.stringify(error.response.data).substring(0, 100)}`);
-        }
+        logToDisk(`❌ [CONFIG ERROR] ${error.message}`);
     }
 }
 
@@ -85,26 +105,23 @@ function startServer() {
     server = dgram.createSocket('udp4');
 
     server.on('error', (err) => {
-        logToDisk(`Syslog Receiver error:\n${err.stack}`);
+        logToDisk(`Syslog Receiver error: ${err.message}`);
         stopServer();
     });
 
     server.on('message', async (msg, rinfo) => {
         const content = msg.toString();
-        // Always log reception
-        logToDisk(`📥 [RECEIVE] From ${rinfo.address}:${rinfo.port}: ${content.substring(0, 50)}${content.length > 50 ? '...' : ''}`);
+        logToDisk(`📥 [REC] ${rinfo.address}: ${content.substring(0, 50)}...`);
+
+        // MIRROR TO BLACKBOX (USB) - Done BEFORE API call for maximum reliability
+        syncToUsb(`[${rinfo.address}] ${content}`);
 
         try {
-            // Try to find a friendly name for this source
             const sourcesList = Array.isArray(sources) ? sources : [];
             const foundSource = sourcesList.find(s => s.ipAddress === rinfo.address);
             const sourceName = foundSource ? foundSource.name : rinfo.address;
 
-            if (!foundSource) {
-                console.log(`ℹ️ [MAPPING] No saved device found for ${rinfo.address}. Using raw IP.`);
-            }
-
-            const res = await axios.post(apiUrl, {
+            await axios.post(apiUrl, {
                 level: 'INFO',
                 source: sourceName,
                 message: content,
@@ -113,12 +130,8 @@ function startServer() {
             }, {
                 headers: { 'x-internal-key': process.env.JWT_SECRET || "dev-secret-key" }
             });
-            logToDisk(`🚀 [FORWARD] Forwarded to API. Status: ${res.status}`);
         } catch (error) {
-            logToDisk(`❌ [ERROR] Failed to forward syslog from ${rinfo.address}: ${error.message}`);
-            if (error.response) {
-                logToDisk(`   API Error Detail: ${JSON.stringify(error.response.data)}`);
-            }
+            logToDisk(`❌ [API ERR] ${rinfo.address}: ${error.message}`);
         }
     });
 
@@ -136,15 +149,11 @@ function startServer() {
 
 function restartServer() {
     stopServer();
-    if (syslogEnabled) {
-        startServer();
-    }
+    if (syslogEnabled) startServer();
 }
 
-// Initial fetch and start
 fetchConfig().then(() => {
     if (syslogEnabled) startServer();
 });
 
-// Periodic check for config changes (every 10 seconds)
 setInterval(fetchConfig, 10000);

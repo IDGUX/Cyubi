@@ -31,6 +31,12 @@ LogVault acts like a **Flight Recorder** for your infrastructure. Enable "Auto-S
 - **Forensic Ready:** Even if the server is compromised or the database wiped, your logs are safe on the physical "Blackbox" drive.
 - **Offline Analytics:** Move the drive to any machine for air-gapped forensic analysis.
 
+#### 🛡️ Hardening your Blackbox
+To achieve a "true" flight recorder setup, we recommend:
+1. **Physical Write-Protect:** Use a USB stick with a physical sliding switch (e.g., Kanguru Solutions) to prevent the OS from ever deleting logs once written.
+2. **WORM Media:** Use Write-Once-Read-Many media (like DVD-RAM or specialized adapters) for permanent archival.
+3. **Air-Gapped Rotation:** Swap your "Blackbox" drive weekly and store it in a physical safe.
+
 ### 🧠 Zero-Knowledge AI Intelligence
 Connect your choice of **OpenAI, Anthropic, Gemini, Mistral**, or even a **Local LLM (Ollama)**. LogVault interpret logs in real-time, providing deep security insights and suggested patterns without compromising your privacy.
 
