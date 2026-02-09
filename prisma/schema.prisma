@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Log {
+  id             String   @id @default(cuid())
+  timestamp      DateTime @default(now())
+  level          String
+  source         String
+  message        String
+  interpretation String?
+  category       String?
+  deviceType     String?
+  hostname       String?
+  ipAddress      String?
+  metadata       String?
+  isAiAnalyzed   Boolean  @default(false)
+}
+
+
+model Setting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}
+
+model SyslogSource {
+  id        String    @id @default(cuid())
+  name      String
+  ipAddress String    @unique
+  color     String?   @default("#3b82f6")
+  createdAt DateTime  @default(now())
+  lastSeen  DateTime?
+}
+
+model Webhook {
+  id        String   @id @default(cuid())
+  name      String
+  url       String   @unique
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model LogParser {
+  id             String   @id @default(cuid())
+  name           String
+  pattern        String
+  level          String   @default("INFO")
+  category       String   @default("Info")
+  interpretation String
+  enabled        Boolean  @default(true)
+  priority       Int      @default(0)
+  createdAt      DateTime @default(now())
+}
+
+model ApiKey {
+  id        String   @id @default(cuid())
+  name      String
+  key       String   @unique
+  createdAt DateTime @default(now())
+}

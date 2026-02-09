@@ -1,0 +1,18 @@
+
+
+services:
+  app:
+    container_name: log-tool
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+      - "514:5140/udp"
+    volumes:
+      - sqlite_data:/app/prisma
+    environment:
+      - DATABASE_URL=file:/app/prisma/prod.db
+      - NODE_ENV=production
+
+volumes:
+  sqlite_data:
