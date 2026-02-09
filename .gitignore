@@ -40,6 +40,18 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# database
+/prisma/*.db
+/prisma/*.db-journal
+/prisma/migrations/
 /app/generated/prisma
-prisma/dev.db
-prisma/dev.db-journal
+
+# logs
+public/receiver.txt
+*.log
+
+# app data
+.DS_Store
+.env
+.env.local
+.env.*.local
