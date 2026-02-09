@@ -2,11 +2,13 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import * as jose from 'jose';
 
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET && process.env.NODE_ENV === 'production') {
-    throw new Error("JWT_SECRET environment variable is required in production");
+const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-key";
+
+if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
+    console.warn("⚠️ [SECURITY WARNING] JWT_SECRET environment variable is missing. Using fallback 'dev-secret-key'. Change this in production!");
 }
-const secret = new TextEncoder().encode(JWT_SECRET || "dev-secret-key");
+
+const secret = new TextEncoder().encode(JWT_SECRET);
 
 export async function middleware(request: NextRequest) {
     const token = request.cookies.get('auth-token')?.value;

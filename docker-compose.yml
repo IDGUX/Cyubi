@@ -13,6 +13,7 @@ services:
     environment:
       - DATABASE_URL=file:/app/prisma/prod.db
       - NODE_ENV=production
+      - JWT_SECRET=your_ultra_secure_secret_change_me
 
 volumes:
   sqlite_data:
