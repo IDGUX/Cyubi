@@ -65,20 +65,27 @@ export async function fetchAvailableModels(provider: string, apiKey: string, bas
     }
 }
 
-export async function callLLM(message: string, source: string): Promise<AIInterpretation | null> {
+export async function callLLM(message: string, source: string, overrides?: {
+    provider?: string;
+    apiKey?: string;
+    model?: string;
+    baseUrl?: string;
+}): Promise<AIInterpretation | null> {
     try {
-        const provider = await getSetting("AI_ACTIVE_PROVIDER") || "openai";
-        const openaiKey = await getSetting("SECRET_OPENAI_KEY");
-        const anthropicKey = await getSetting("SECRET_ANTHROPIC_KEY");
-        const geminiKey = await getSetting("SECRET_GEMINI_KEY");
-        const mistralKey = await getSetting("SECRET_MISTRAL_KEY");
-        const localUrl = await getSetting("AI_LOCAL_URL") || "http://localhost:11434";
+        const provider = overrides?.provider || await getSetting("AI_ACTIVE_PROVIDER") || "openai";
 
-        const openaiModel = await getSetting("AI_OPENAI_MODEL") || "gpt-4o";
-        const anthropicModel = await getSetting("AI_ANTHROPIC_MODEL") || "claude-3-5-sonnet-20240620";
-        const geminiModel = await getSetting("AI_GEMINI_MODEL") || "gemini-1.5-flash";
-        const mistralModel = await getSetting("AI_MISTRAL_MODEL") || "mistral-large-latest";
-        const localModel = await getSetting("AI_LOCAL_MODEL") || "llama3";
+        const openaiKey = (provider === "openai" && overrides?.apiKey) ? overrides.apiKey : await getSetting("SECRET_OPENAI_KEY");
+        const anthropicKey = (provider === "anthropic" && overrides?.apiKey) ? overrides.apiKey : await getSetting("SECRET_ANTHROPIC_KEY");
+        const geminiKey = (provider === "gemini" && overrides?.apiKey) ? overrides.apiKey : await getSetting("SECRET_GEMINI_KEY");
+        const mistralKey = (provider === "mistral" && overrides?.apiKey) ? overrides.apiKey : await getSetting("SECRET_MISTRAL_KEY");
+
+        const localUrl = overrides?.baseUrl || await getSetting("AI_LOCAL_URL") || "http://localhost:11434";
+
+        const openaiModel = (provider === "openai" && overrides?.model) ? overrides.model : await getSetting("AI_OPENAI_MODEL") || "gpt-4o";
+        const anthropicModel = (provider === "anthropic" && overrides?.model) ? overrides.model : await getSetting("AI_ANTHROPIC_MODEL") || "claude-3-5-sonnet-20240620";
+        const geminiModel = (provider === "gemini" && overrides?.model) ? overrides.model : await getSetting("AI_GEMINI_MODEL") || "gemini-1.5-flash";
+        const mistralModel = (provider === "mistral" && overrides?.model) ? overrides.model : await getSetting("AI_MISTRAL_MODEL") || "mistral-large-latest";
+        const localModel = (provider === "local" && overrides?.model) ? overrides.model : await getSetting("AI_LOCAL_MODEL") || "llama3";
 
         const prompt = `
             Analyze the following Syslog message and provide a structured interpretation.

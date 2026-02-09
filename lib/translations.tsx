@@ -198,6 +198,14 @@ export const translations: Translations = {
     zeroKnowledgeNote: { de: "Kein technisches Wissen nötig. Die KI übernimmt die Konfiguration.", en: "No technical knowledge required. AI handles the configuration." },
     analyzeNow: { de: "Jetzt analysieren", en: "Analyze Now" },
     learningPhase: { de: "Lern-Phase", en: "Learning Phase" },
+    testConn: { de: "Verbindung testen", en: "Test Connection" },
+    testConnection: { de: "Verbindung testen", en: "Test Connection" },
+    testing: { de: "Test läuft...", en: "Testing..." },
+    providerSetup: { de: "Provider Einrichtung", en: "Provider Setup" },
+    connectionTestSuccess: { de: "Verbindung erfolgreich", en: "Connection Successful" },
+    connectionTestFailed: { de: "Verbindung fehlgeschlagen", en: "Connection Failed" },
+    aiSampleOutput: { de: "KI-Output (Test-Vorschau)", en: "AI Output (Test Preview)" },
+    interpretationPrefix: { de: "KI Interpretation", en: "AI Interpretation" },
 };
 
 interface TranslationContextType {

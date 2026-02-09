@@ -311,7 +311,8 @@ export default function SettingsView() {
                     provider,
                     apiKey,
                     model: (aiSettings as any)[`AI_${provider.toUpperCase()}_MODEL`],
-                    baseUrl: aiSettings.AI_LOCAL_URL
+                    baseUrl: aiSettings.AI_LOCAL_URL,
+                    lang: language
                 }),
             });
             const data = await res.json();
@@ -911,30 +912,6 @@ Invoke-RestMethod -Uri "http://${host}/api/logs" -Method Post -Body ($body | Con
                             </div>
                         </div>
 
-                        {/* Connection Test Banner */}
-                        {testResult && (
-                            <div className={`mb-6 p-4 rounded-2xl border flex items-start gap-4 animate-in slide-in-from-top-4 duration-300 ${testResult.success ? "bg-green-500/10 border-green-500/20" : "bg-red-500/10 border-red-500/20"}`}>
-                                <div className={`p-2 rounded-xl ${testResult.success ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}>
-                                    {testResult.success ? <ShieldCheck size={20} /> : <ShieldAlert size={20} />}
-                                </div>
-                                <div className="flex-1">
-                                    <h4 className={`text-xs font-black uppercase tracking-widest ${testResult.success ? "text-green-400" : "text-red-400"}`}>
-                                        {testResult.success ? t("connectionTestSuccess") : t("connectionTestFailed")}
-                                    </h4>
-                                    <p className="text-xs text-white/60 mt-1 leading-relaxed">
-                                        {testResult.message}
-                                    </p>
-                                    {testResult.result && (
-                                        <div className="mt-2 text-[10px] font-mono text-white/40 bg-black/20 p-2 rounded">
-                                            {testResult.result.interpretation}
-                                        </div>
-                                    )}
-                                </div>
-                                <button onClick={() => setTestResult(null)} className="text-white/20 hover:text-white transition-colors">
-                                    <X size={16} />
-                                </button>
-                            </div>
-                        )}
 
                         <div className="grid grid-cols-1 gap-6">
                             {/* API Key Fields */}
@@ -1090,15 +1067,65 @@ Invoke-RestMethod -Uri "http://${host}/api/logs" -Method Post -Body ($body | Con
                                         </button>
                                     ))}
                                 </div>
-                                <div className="mt-4">
-                                    <button
-                                        onClick={testConnection}
-                                        disabled={testing}
-                                        className="w-full sm:w-auto px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/60 hover:text-white transition-all flex items-center justify-center gap-2"
-                                    >
-                                        {testing ? <Loader2 size={12} className="animate-spin" /> : <Activity size={12} />}
-                                        {testing ? t("testing") : t("testConnection")}
-                                    </button>
+
+                                <div className="mt-4 flex flex-col gap-4">
+                                    <div>
+                                        <button
+                                            onClick={testConnection}
+                                            disabled={testing}
+                                            className="w-full sm:w-auto px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/60 hover:text-white transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            {testing ? <Loader2 size={12} className="animate-spin text-purple-400" /> : <Zap size={12} className="text-purple-400" />}
+                                            {testing ? t("testing") : t("testConnection")}
+                                        </button>
+                                    </div>
+
+                                    {/* Intelligence Terminal Output */}
+                                    {testResult && (
+                                        <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/40 backdrop-blur-sm animate-in zoom-in-95 slide-in-from-top-2 duration-500">
+                                            <div className="flex items-center justify-between px-4 py-2 border-b border-white/5 bg-white/5">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="flex gap-1">
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
+                                                    </div>
+                                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30 ml-2">
+                                                        {t("aiSampleOutput")}
+                                                    </span>
+                                                </div>
+                                                <button onClick={() => setTestResult(null)} className="text-white/20 hover:text-white transition-colors">
+                                                    <X size={14} />
+                                                </button>
+                                            </div>
+                                            <div className="p-5 space-y-4 font-mono text-[11px]">
+                                                <div className="flex items-start gap-4">
+                                                    <div className={`mt-0.5 p-1.5 rounded-lg ${testResult.success ? "bg-green-500/10 text-green-400 border border-green-500/20" : "bg-red-500/10 text-red-400 border border-red-500/20"}`}>
+                                                        {testResult.success ? <ShieldCheck size={14} /> : <ShieldAlert size={14} />}
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <div className={`font-black uppercase tracking-widest mb-1 ${testResult.success ? "text-green-400" : "text-red-400"}`}>
+                                                            {testResult.success ? t("connectionTestSuccess") : t("connectionTestFailed")}
+                                                        </div>
+                                                        <div className="text-white/50 leading-relaxed">
+                                                            {testResult.success ? testResult.message : (testResult.error || testResult.message || "Unknown Error")}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {testResult.interpretation && (
+                                                    <div className="pt-4 border-t border-white/5 text-purple-400/70 leading-relaxed">
+                                                        <div className="text-[10px] font-black uppercase tracking-widest text-white/20 mb-1 flex items-center gap-2">
+                                                            <Sparkles size={10} /> {t("interpretationPrefix")}
+                                                        </div>
+                                                        <div className="flex items-start gap-2">
+                                                            <span className="text-white/20">➜</span>
+                                                            <span className="flex-1">{testResult.interpretation}</span>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
