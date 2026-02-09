@@ -21,7 +21,10 @@ import {
     X,
     Cpu,
     Sparkles,
-    Zap
+    Zap,
+    ShieldCheck,
+    ShieldAlert,
+    Loader2
 } from "lucide-react";
 import { useTranslation } from "@/lib/translations";
 
@@ -82,6 +85,8 @@ export default function SettingsView() {
     });
 
     const [isFetchingModels, setIsFetchingModels] = useState<Record<string, boolean>>({});
+    const [testing, setTesting] = useState(false);
+    const [testResult, setTestResult] = useState<any | null>(null);
 
 
     useEffect(() => {
@@ -288,6 +293,35 @@ export default function SettingsView() {
             providers.forEach(p => fetchModels(p));
         }
     }, [activeTab]);
+
+    const testConnection = async () => {
+        setTesting(true);
+        setTestResult(null);
+        try {
+            const provider = aiSettings.AI_ACTIVE_PROVIDER;
+            const apiKey = provider === "openai" ? aiSettings.SECRET_OPENAI_KEY :
+                provider === "anthropic" ? aiSettings.SECRET_ANTHROPIC_KEY :
+                    provider === "gemini" ? aiSettings.SECRET_GEMINI_KEY :
+                        provider === "mistral" ? aiSettings.SECRET_MISTRAL_KEY : "";
+
+            const res = await fetch("/api/ai/test", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    provider,
+                    apiKey,
+                    model: (aiSettings as any)[`AI_${provider.toUpperCase()}_MODEL`],
+                    baseUrl: aiSettings.AI_LOCAL_URL
+                }),
+            });
+            const data = await res.json();
+            setTestResult(data);
+        } catch (e) {
+            setTestResult({ success: false, message: "Connection failed internally." });
+        } finally {
+            setTesting(false);
+        }
+    };
 
     const fetchSettings = async () => {
         try {
@@ -877,6 +911,31 @@ Invoke-RestMethod -Uri "http://${host}/api/logs" -Method Post -Body ($body | Con
                             </div>
                         </div>
 
+                        {/* Connection Test Banner */}
+                        {testResult && (
+                            <div className={`mb-6 p-4 rounded-2xl border flex items-start gap-4 animate-in slide-in-from-top-4 duration-300 ${testResult.success ? "bg-green-500/10 border-green-500/20" : "bg-red-500/10 border-red-500/20"}`}>
+                                <div className={`p-2 rounded-xl ${testResult.success ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}>
+                                    {testResult.success ? <ShieldCheck size={20} /> : <ShieldAlert size={20} />}
+                                </div>
+                                <div className="flex-1">
+                                    <h4 className={`text-xs font-black uppercase tracking-widest ${testResult.success ? "text-green-400" : "text-red-400"}`}>
+                                        {testResult.success ? t("connectionTestSuccess") : t("connectionTestFailed")}
+                                    </h4>
+                                    <p className="text-xs text-white/60 mt-1 leading-relaxed">
+                                        {testResult.message}
+                                    </p>
+                                    {testResult.result && (
+                                        <div className="mt-2 text-[10px] font-mono text-white/40 bg-black/20 p-2 rounded">
+                                            {testResult.result.interpretation}
+                                        </div>
+                                    )}
+                                </div>
+                                <button onClick={() => setTestResult(null)} className="text-white/20 hover:text-white transition-colors">
+                                    <X size={16} />
+                                </button>
+                            </div>
+                        )}
+
                         <div className="grid grid-cols-1 gap-6">
                             {/* API Key Fields */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1024,12 +1083,22 @@ Invoke-RestMethod -Uri "http://${host}/api/logs" -Method Post -Body ($body | Con
                                         <button
                                             key={p}
                                             onClick={() => setAiSettings({ ...aiSettings, AI_ACTIVE_PROVIDER: p })}
-                                            className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${aiSettings.AI_ACTIVE_PROVIDER === p ? "bg-purple-500/10 border-purple-500/40 text-white" : "bg-white/5 border-white/5 text-white/40 hover:bg-white/10"}`}
+                                            className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all group/p ${aiSettings.AI_ACTIVE_PROVIDER === p ? "bg-purple-500/10 border-purple-500/40 text-white" : "bg-white/5 border-white/5 text-white/40 hover:bg-white/10"}`}
                                         >
                                             <span className="font-bold capitalize text-xs">{p}</span>
-                                            <div className={`w-1.5 h-1.5 rounded-full ${aiSettings.AI_ACTIVE_PROVIDER === p ? "bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]" : "bg-white/10"}`} />
+                                            <div className={`w-1.5 h-1.5 rounded-full ${aiSettings.AI_ACTIVE_PROVIDER === p ? "bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]" : "bg-white/10 group-hover/p:bg-white/20"}`} />
                                         </button>
                                     ))}
+                                </div>
+                                <div className="mt-4">
+                                    <button
+                                        onClick={testConnection}
+                                        disabled={testing}
+                                        className="w-full sm:w-auto px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/60 hover:text-white transition-all flex items-center justify-center gap-2"
+                                    >
+                                        {testing ? <Loader2 size={12} className="animate-spin" /> : <Activity size={12} />}
+                                        {testing ? t("testing") : t("testConnection")}
+                                    </button>
                                 </div>
                             </div>
 

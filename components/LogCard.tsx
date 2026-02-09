@@ -120,7 +120,10 @@ export default function LogCard({ log: initialLog }: { log: Log }) {
                                 <button
                                     onClick={analyzeWithAi}
                                     disabled={isAnalyzing}
-                                    className="opacity-0 group-hover:opacity-100 transition-all flex items-center gap-1.5 px-2 py-0.5 bg-white/5 hover:bg-purple-500/20 border border-white/10 hover:border-purple-500/40 rounded-full text-white/40 hover:text-purple-400 group/ai"
+                                    className={`transition-all flex items-center gap-1.5 px-2 py-0.5 rounded-full border group/ai ${isAnalyzing
+                                        ? "bg-purple-500/20 border-purple-500/40 text-purple-400 animate-pulse"
+                                        : "bg-white/5 border-white/10 text-white/40 hover:bg-purple-500/20 hover:border-purple-500/40 hover:text-purple-400"
+                                        }`}
                                 >
                                     {isAnalyzing ? (
                                         <Loader2 size={10} className="animate-spin" />
@@ -128,7 +131,7 @@ export default function LogCard({ log: initialLog }: { log: Log }) {
                                         <Sparkles size={10} className="group-hover/ai:animate-pulse" />
                                     )}
                                     <span className="text-[9px] font-black uppercase tracking-tighter">
-                                        {isAnalyzing ? "..." : t("aiAnalysis")}
+                                        {isAnalyzing ? "Analyzing..." : t("aiAnalysis")}
                                     </span>
                                 </button>
                             )}
