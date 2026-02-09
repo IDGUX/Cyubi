@@ -253,18 +253,23 @@ export default function SettingsView() {
         }
     };
 
-    const fetchModels = async (provider: string) => {
-        const apiKey = provider === "openai" ? aiSettings.SECRET_OPENAI_KEY :
-            provider === "anthropic" ? aiSettings.SECRET_ANTHROPIC_KEY :
-                provider === "gemini" ? aiSettings.SECRET_GEMINI_KEY :
-                    provider === "mistral" ? aiSettings.SECRET_MISTRAL_KEY : "";
+    const fetchModels = async (provider: string, overrideKey?: string, overrideUrl?: string) => {
+        const apiKey = overrideKey !== undefined ? overrideKey : (
+            provider === "openai" ? aiSettings.SECRET_OPENAI_KEY :
+                provider === "anthropic" ? aiSettings.SECRET_ANTHROPIC_KEY :
+                    provider === "gemini" ? aiSettings.SECRET_GEMINI_KEY :
+                        provider === "mistral" ? aiSettings.SECRET_MISTRAL_KEY : ""
+        );
+
+        const baseUrl = overrideUrl !== undefined ? overrideUrl : aiSettings.AI_LOCAL_URL;
 
         if (!apiKey && provider !== "local") return;
+        if (provider === "local" && !baseUrl) return;
 
         setIsFetchingModels(prev => ({ ...prev, [provider]: true }));
         try {
             const url = `/api/ai/models?provider=${provider}&apiKey=${encodeURIComponent(apiKey)}` +
-                (provider === "local" ? `&baseUrl=${encodeURIComponent(aiSettings.AI_LOCAL_URL)}` : "");
+                (provider === "local" ? `&baseUrl=${encodeURIComponent(baseUrl)}` : "");
             const res = await fetch(url);
             const data = await res.json();
             if (data.models) {
@@ -881,6 +886,7 @@ Invoke-RestMethod -Uri "http://${host}/api/logs" -Method Post -Body ($body | Con
                                             type="password"
                                             value={aiSettings.SECRET_OPENAI_KEY || ""}
                                             onChange={(e) => setAiSettings({ ...aiSettings, SECRET_OPENAI_KEY: e.target.value })}
+                                            onBlur={(e) => fetchModels("openai", e.target.value)}
                                             className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-sm focus:outline-none focus:border-purple-500/50 transition-colors"
                                             placeholder="sk-..."
                                         />
@@ -897,6 +903,7 @@ Invoke-RestMethod -Uri "http://${host}/api/logs" -Method Post -Body ($body | Con
                                             type="password"
                                             value={aiSettings.SECRET_ANTHROPIC_KEY || ""}
                                             onChange={(e) => setAiSettings({ ...aiSettings, SECRET_ANTHROPIC_KEY: e.target.value })}
+                                            onBlur={(e) => fetchModels("anthropic", e.target.value)}
                                             className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-sm focus:outline-none focus:border-purple-500/50 transition-colors"
                                             placeholder="sk-ant-..."
                                         />
@@ -913,6 +920,7 @@ Invoke-RestMethod -Uri "http://${host}/api/logs" -Method Post -Body ($body | Con
                                             type="password"
                                             value={aiSettings.SECRET_GEMINI_KEY || ""}
                                             onChange={(e) => setAiSettings({ ...aiSettings, SECRET_GEMINI_KEY: e.target.value })}
+                                            onBlur={(e) => fetchModels("gemini", e.target.value)}
                                             className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-sm focus:outline-none focus:border-purple-500/50 transition-colors"
                                             placeholder="AIza..."
                                         />
@@ -929,6 +937,7 @@ Invoke-RestMethod -Uri "http://${host}/api/logs" -Method Post -Body ($body | Con
                                             type="password"
                                             value={aiSettings.SECRET_MISTRAL_KEY || ""}
                                             onChange={(e) => setAiSettings({ ...aiSettings, SECRET_MISTRAL_KEY: e.target.value })}
+                                            onBlur={(e) => fetchModels("mistral", e.target.value)}
                                             className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-sm focus:outline-none focus:border-purple-500/50 transition-colors"
                                             placeholder="your-key-here"
                                         />
@@ -945,6 +954,7 @@ Invoke-RestMethod -Uri "http://${host}/api/logs" -Method Post -Body ($body | Con
                                             type="text"
                                             value={aiSettings.AI_LOCAL_URL || ""}
                                             onChange={(e) => setAiSettings({ ...aiSettings, AI_LOCAL_URL: e.target.value })}
+                                            onBlur={(e) => fetchModels("local", undefined, e.target.value)}
                                             className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-sm focus:outline-none focus:border-purple-500/50 transition-colors"
                                             placeholder="http://localhost:11434"
                                         />
