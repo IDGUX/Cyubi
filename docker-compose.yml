@@ -8,13 +8,30 @@ services:
     ports:
       - "3000:3000"
       - "514:5140/udp"
-    volumes:
-      - sqlite_data:/app/prisma
     environment:
-      - DATABASE_URL=file:/app/prisma/prod.db
+      - DATABASE_URL=postgresql://logvault:logvault@postgres:5432/logvault
       - NODE_ENV=production
       # ⚠️ CHANGE THIS: Generate a secure secret with: openssl rand -hex 32
       - JWT_SECRET=your_ultra_secure_secret_change_me
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: logvault-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: logvault
+      POSTGRES_PASSWORD: logvault
+      POSTGRES_DB: logvault
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U logvault"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
-  sqlite_data:
+  postgres_data:

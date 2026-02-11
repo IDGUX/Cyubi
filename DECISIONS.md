@@ -6,7 +6,7 @@ This document captures key design decisions for LogVault, including context, rea
 
 ## ADR-001: SQLite as Reference Storage Implementation
 
-**Status:** Accepted
+**Status:** Superseded by ADR-005
 **Date:** 2026-02-11
 
 ### Context
@@ -105,3 +105,28 @@ Primary target: IT service providers and SMBs (KMU) who need post-incident docum
 
 ### Impact
 This decision shapes: UI complexity (simple > configurable), storage requirements (thousands, not billions), deployment model (single node > distributed), and documentation language (practical > academic).
+
+---
+
+## ADR-005: PostgreSQL as Default Storage Backend
+
+**Status:** Accepted
+**Date:** 2026-02-11
+
+### Context
+ADR-001 chose SQLite for zero-config simplicity. In practice, SQLite's single-writer limitation caused critical concurrency issues: the hash-chain backfill operation (sequential writes) combined with 5-second polling (reads) created database contention, causing the repair process to hang for 10+ minutes.
+
+### Decision
+Switch to PostgreSQL as the default storage backend, deployed as a Docker sidecar container.
+
+### Reasoning
+- **MVCC concurrency** — reads never block writes, solving the backfill + polling contention
+- **Batch transactions** — native support for batched writes via `$transaction`
+- **Production-grade** — proven at scale for log-heavy workloads
+- **Prisma compatibility** — zero application code changes required (only `schema.prisma` provider swap)
+- **Docker-friendly** — `postgres:16-alpine` adds ~80MB to deployment
+
+### Trade-offs
+- Requires a running PostgreSQL instance (Docker Compose handles this automatically)
+- Backup is now `pg_dump` instead of `cp file.db` (documented in README)
+- Slightly more complex local dev setup (need local PostgreSQL or Docker)

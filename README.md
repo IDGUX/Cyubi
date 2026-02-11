@@ -81,12 +81,17 @@ cd LogVault
 npm install
 ```
 
-### 2. Initialize Database
+### 2. Start PostgreSQL
+```bash
+docker compose up -d postgres
+```
+
+### 3. Initialize Database
 ```bash
 npx prisma db push
 ```
 
-### 3. Start
+### 4. Start
 ```bash
 npm run dev
 ```
@@ -98,36 +103,50 @@ npm run dev
 Deploy anywhere in seconds. Optimized for Docker and Proxmox.
 
 ```yaml
-# docker-compose.yml
+# docker-compose.yml (included in repo)
 services:
-  logvault:
-    image: idgux/logvault:latest
+  app:
+    build: .
     ports:
       - "3000:3000"
       - "514:5140/udp"
     environment:
+      - DATABASE_URL=postgresql://logvault:logvault@postgres:5432/logvault
       - JWT_SECRET=your_ultra_secure_secret
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U logvault"]
 ```
 
 ---
 
 ## 💾 Backup & Persistence
 
-LogVault uses SQLite as its reference storage implementation. Your data is protected through Docker volumes.
+LogVault uses PostgreSQL for reliable, concurrent data storage. Your data is protected through Docker volumes.
 
 ```bash
 # Manual backup
-docker cp log-tool:/app/prisma/prod.db ./backup_logvault_$(date +%F).db
+docker exec logvault-db pg_dump -U logvault logvault > backup_logvault_$(date +%F).sql
+
+# Restore
+cat backup.sql | docker exec -i logvault-db psql -U logvault logvault
 ```
 
-> **Note:** SQLite is a deliberate choice for single-node simplicity. The architecture allows swapping the storage backend — see [DECISIONS.md](DECISIONS.md) for details.
+> **Note:** PostgreSQL was chosen over SQLite for its superior concurrency handling — see [DECISIONS.md](DECISIONS.md) for details.
 
 ---
 
 ## 🛠 Tech Stack
 
 - **Framework:** Next.js 15 (App Router)
-- **Database:** SQLite + Prisma ORM
+- **Database:** PostgreSQL 16 + Prisma ORM
 - **Integrity:** SHA-256 Hash Chain
 - **Intelligence:** OpenAI, Anthropic, Gemini, Mistral, Ollama (opt-in)
 - **Styling:** Tailwind CSS + Glassmorphism

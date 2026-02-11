@@ -9,6 +9,8 @@ import { getLogModel } from "@/lib/types";
  * Retroactively computes hashes for all logs that don't have them yet.
  * Processes ALL logs in chronological order, building a proper chain
  * from the very first log entry.
+ * 
+ * Uses batched transactions for performance (chunks of 500).
  */
 export async function POST() {
     try {
@@ -40,6 +42,9 @@ export async function POST() {
         let previousHash = "0"; // Genesis
         let backfilled = 0;
 
+        // Collect all updates first, then batch them
+        const updates: { id: string; eventHash: string; previousHash: string }[] = [];
+
         for (const log of allLogs) {
             const expectedHash = computeEventHash(previousHash, {
                 level: log.level,
@@ -48,19 +53,33 @@ export async function POST() {
                 timestamp: log.timestamp.toISOString(),
             });
 
-            // Update if missing or if the chain was broken by prior inconsistency
             if (!log.eventHash || log.eventHash !== expectedHash || log.previousHash !== previousHash) {
-                await logModel.update({
-                    where: { id: log.id },
-                    data: {
-                        eventHash: expectedHash,
-                        previousHash: previousHash,
-                    },
+                updates.push({
+                    id: log.id,
+                    eventHash: expectedHash,
+                    previousHash: previousHash,
                 });
                 backfilled++;
             }
 
             previousHash = expectedHash;
+        }
+
+        // Execute updates in batched transactions (chunks of 500)
+        const CHUNK_SIZE = 500;
+        for (let i = 0; i < updates.length; i += CHUNK_SIZE) {
+            const chunk = updates.slice(i, i + CHUNK_SIZE);
+            await prisma.$transaction(
+                chunk.map((u) =>
+                    logModel.update({
+                        where: { id: u.id },
+                        data: {
+                            eventHash: u.eventHash,
+                            previousHash: u.previousHash,
+                        },
+                    })
+                )
+            );
         }
 
         return NextResponse.json({
