@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import LogCard from "./LogCard";
-import SettingsView from "./SettingsView";
+import SettingsView from "./settings/SettingsView";
 import RawLogView from "./RawLogView";
 import LiveLogChart from "./LiveLogChart";
 import SecurityScore from "./SecurityScore";
@@ -148,8 +148,8 @@ export default function LogDashboard() {
                     {/* Chain Status Indicator */}
                     {chainStatus && (
                         <div className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] sm:text-xs font-bold ${chainStatus.valid
-                                ? "text-green-400/80 bg-green-500/5 border border-green-500/10"
-                                : "text-red-400/80 bg-red-500/5 border border-red-500/10"
+                            ? "text-green-400/80 bg-green-500/5 border border-green-500/10"
+                            : "text-red-400/80 bg-red-500/5 border border-red-500/10"
                             }`}>
                             {chainStatus.valid ? <CheckCircle size={14} /> : <XCircle size={14} />}
                             <span className="hidden sm:inline">{chainStatus.valid ? "Chain OK" : "Chain Broken"}</span>
