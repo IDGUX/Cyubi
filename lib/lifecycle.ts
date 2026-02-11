@@ -1,4 +1,5 @@
 import { prisma } from "./prisma";
+import { getLogModel } from "./types";
 
 /**
  * Prunes logs from the database based on retention settings.
@@ -6,7 +7,6 @@ import { prisma } from "./prisma";
  * - Deletes oldest logs if count exceeds MAX_LOG_COUNT.
  */
 export async function pruneLogs() {
-    console.log("🧹 Starting log maintenance...");
     try {
         // 1. Fetch current settings
         const settings = await prisma.setting.findMany({
@@ -25,12 +25,7 @@ export async function pruneLogs() {
         const retentionDays = parseInt(config.LOG_RETENTION_DAYS) || 30;
         const maxLogs = parseInt(config.MAX_LOG_COUNT) || 50000;
 
-        // Robust model discovery for Log
-        const logModel = (prisma as any).log || (prisma as any).Log || (prisma as any)[Object.keys(prisma).find(k => k.toLowerCase() === "log") || ""];
-
-        if (!logModel) {
-            throw new Error("Log model not found in Prisma client");
-        }
+        const logModel = getLogModel(prisma);
 
         // 2. Prune by Age
         const cutoffDate = new Date();

@@ -3,23 +3,17 @@
 import { X, Copy, Check, Share2, Shield } from "lucide-react";
 import { useState, useEffect } from "react";
 import { anonymizeLog } from "./ShareUtil";
-
-interface Log {
-    id: string;
-    timestamp: string | Date;
-    level: string;
-    source: string;
-    message: string;
-    interpretation?: string;
-}
+import type { LogEvent } from "@/lib/types";
+import { useTranslation } from "@/lib/translations";
 
 interface ShareModalProps {
     isOpen: boolean;
     onClose: () => void;
-    logs: Log[]; // Can be one or multiple
+    logs: LogEvent[];
 }
 
 export default function ShareModal({ isOpen, onClose, logs }: ShareModalProps) {
+    const { t } = useTranslation();
     const [content, setContent] = useState("");
     const [copied, setCopied] = useState(false);
 
@@ -50,7 +44,7 @@ export default function ShareModal({ isOpen, onClose, logs }: ShareModalProps) {
                 setCopied(true);
                 setTimeout(() => setCopied(false), 2000);
             } catch (e) {
-                alert("Kopieren fehlgeschlagen.");
+                alert(t("copyFailed"));
             }
         }
     };
@@ -75,8 +69,7 @@ export default function ShareModal({ isOpen, onClose, logs }: ShareModalProps) {
 
                 <div className="p-4 space-y-4">
                     <p className="text-sm text-white/60">
-                        Ip-Adressen und MAC-Adressen wurden automatisch zensiert (x.x.x.x).
-                        Perfekt für Reddit, Discord oder Foren.
+                        {t("shareAnonymizedHint")}
                     </p>
 
                     <div className="relative">
@@ -86,7 +79,7 @@ export default function ShareModal({ isOpen, onClose, logs }: ShareModalProps) {
                                 className="flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-bold transition-all border border-white/10"
                             >
                                 {copied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
-                                {copied ? "Kopiert!" : "Kopieren"}
+                                {copied ? t("copied") : t("copy")}
                             </button>
                         </div>
                         <textarea
@@ -102,7 +95,7 @@ export default function ShareModal({ isOpen, onClose, logs }: ShareModalProps) {
                         onClick={onClose}
                         className="w-full py-3 bg-white/5 hover:bg-white/10 rounded-xl text-sm font-bold transition-all"
                     >
-                        Schließen
+                        {t("close")}
                     </button>
                 </div>
             </div>

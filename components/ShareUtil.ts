@@ -1,18 +1,6 @@
-"use client";
+import type { LogEvent } from "@/lib/types";
 
-import { Copy, Check, Share2 } from "lucide-react";
-import { useState } from "react";
-
-interface Log {
-    id: string;
-    timestamp: string | Date;
-    level: string;
-    source: string;
-    message: string;
-    interpretation?: string;
-}
-
-export function anonymizeLog(log: Log): string {
+export function anonymizeLog(log: LogEvent): string {
     let content = `[${new Date(log.timestamp).toISOString()}] ${log.level.toUpperCase()} @ ${log.source}\n${log.message}`;
     if (log.interpretation) {
         content += `\nAI Analysis: ${log.interpretation}`;

@@ -14,8 +14,6 @@ export async function middleware(request: NextRequest) {
     const token = request.cookies.get('auth-token')?.value;
     const { pathname } = request.nextUrl;
 
-    console.log(`[MIDDLEWARE] Path: ${pathname}, Token present: ${!!token}`);
-
     // 1. Allow access to login and auth API
     if (pathname === '/login' || pathname.startsWith('/api/auth')) {
         return NextResponse.next();
@@ -39,16 +37,13 @@ export async function middleware(request: NextRequest) {
 
     // Check if token exists and is valid
     if (!token) {
-        console.log("[MIDDLEWARE] No token, redirecting to /login");
         return NextResponse.redirect(new URL('/login', request.url));
     }
 
     try {
         await jose.jwtVerify(token, secret);
-        console.log("[MIDDLEWARE] Valid token, proceeding");
         return NextResponse.next();
-    } catch (e: any) {
-        console.log(`[MIDDLEWARE] Invalid token (${e.message}), redirecting to /login`);
+    } catch (e: unknown) {
         const response = NextResponse.redirect(new URL('/login', request.url));
         response.cookies.delete('auth-token');
         return response;

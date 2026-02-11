@@ -206,6 +206,11 @@ export const translations: Translations = {
     connectionTestFailed: { de: "Verbindung fehlgeschlagen", en: "Connection Failed" },
     aiSampleOutput: { de: "KI-Output (Test-Vorschau)", en: "AI Output (Test Preview)" },
     interpretationPrefix: { de: "KI Interpretation", en: "AI Interpretation" },
+
+    // Share Modal
+    close: { de: "Schließen", en: "Close" },
+    copyFailed: { de: "Kopieren fehlgeschlagen.", en: "Copy failed." },
+    shareAnonymizedHint: { de: "IP-Adressen und MAC-Adressen wurden automatisch zensiert (x.x.x.x). Perfekt für Reddit, Discord oder Foren.", en: "IP addresses and MAC addresses have been automatically redacted (x.x.x.x). Perfect for Reddit, Discord or forums." },
 };
 
 interface TranslationContextType {

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { analyzeLog } from "@/lib/analyst";
 import { getLastHash, computeEventHash } from "@/lib/integrity";
+import { getLogModel } from "@/lib/types";
 
 export async function POST(req: Request) {
     try {
@@ -37,12 +38,8 @@ export async function POST(req: Request) {
         // 3. intelligent Analysis
         const analysis = await analyzeLog(message, resolvedSource);
 
-        // 4. Store in DB (Robust model discovery)
-        const logModel = (prisma as any).log || (prisma as any).Log || (prisma as any)[Object.keys(prisma).find(k => k.toLowerCase() === "log") || ""];
-
-        if (!logModel) {
-            throw new Error("Log model not found in Prisma client");
-        }
+        // 4. Store in DB
+        const logModel = getLogModel(prisma);
 
         // 4a. Compute Hash Chain
         const previousHash = await getLastHash();
@@ -147,12 +144,7 @@ export async function GET(req: Request) {
         const source = searchParams.get("source");
         const search = searchParams.get("search");
 
-        // Robust model discovery for Log
-        const logModel = (prisma as any).log || (prisma as any).Log || (prisma as any)[Object.keys(prisma).find(k => k.toLowerCase() === "log") || ""];
-
-        if (!logModel) {
-            throw new Error("Log model not found in Prisma client");
-        }
+        const logModel = getLogModel(prisma);
 
         const logs = await logModel.findMany({
             where: {
@@ -185,12 +177,7 @@ export async function DELETE(req: Request) {
         const { searchParams } = new URL(req.url);
         const action = searchParams.get("action");
 
-        // Robust model discovery for Log
-        const logModel = (prisma as any).log || (prisma as any).Log || (prisma as any)[Object.keys(prisma).find(k => k.toLowerCase() === "log") || ""];
-
-        if (!logModel) {
-            throw new Error("Log model not found in Prisma client");
-        }
+        const logModel = getLogModel(prisma);
 
         if (action === "prune") {
             const { pruneLogs } = await import("@/lib/lifecycle");
