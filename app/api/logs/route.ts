@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { analyzeLog } from "@/lib/analyst";
+import { getLastHash, computeEventHash } from "@/lib/integrity";
 
 export async function POST(req: Request) {
     try {
@@ -43,6 +44,16 @@ export async function POST(req: Request) {
             throw new Error("Log model not found in Prisma client");
         }
 
+        // 4a. Compute Hash Chain
+        const previousHash = await getLastHash();
+        const eventTimestamp = new Date();
+        const eventHash = computeEventHash(previousHash, {
+            level: level || "INFO",
+            source: resolvedSource,
+            message: message,
+            timestamp: eventTimestamp.toISOString(),
+        });
+
         const log = await logModel.create({
             data: {
                 level: level || "INFO",
@@ -54,6 +65,9 @@ export async function POST(req: Request) {
                 hostname: hostname,
                 ipAddress: ipAddress,
                 metadata: metadata ? JSON.stringify(metadata) : null,
+                timestamp: eventTimestamp,
+                eventHash: eventHash,
+                previousHash: previousHash,
             },
         });
 

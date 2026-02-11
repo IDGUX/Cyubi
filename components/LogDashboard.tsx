@@ -7,7 +7,7 @@ import RawLogView from "./RawLogView";
 import LiveLogChart from "./LiveLogChart";
 import SecurityScore from "./SecurityScore";
 import ShareModal from "./ShareModal";
-import { Search, Activity, Shield, Settings, List, Terminal, Share2 } from "lucide-react";
+import { Search, Activity, Shield, Settings, List, Terminal, Share2, FileText, CheckCircle, XCircle, Download, X, Link } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { useTranslation } from "@/lib/translations";
@@ -21,6 +21,49 @@ export default function LogDashboard() {
     const [view, setView] = useState<"LOGS" | "SETTINGS" | "STREAM">("LOGS");
     const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+    const [reportContent, setReportContent] = useState<string | null>(null);
+    const [reportLoading, setReportLoading] = useState(false);
+    const [chainStatus, setChainStatus] = useState<{ valid: boolean; totalEvents: number; details: string } | null>(null);
+
+    // Verify chain on mount
+    useEffect(() => {
+        fetch("/api/verify")
+            .then(res => res.json())
+            .then(data => setChainStatus(data))
+            .catch(() => setChainStatus(null));
+    }, []);
+
+    const generateReport = async (mode: "last10" | "last50" | "all") => {
+        setReportLoading(true);
+        try {
+            const lastN = mode === "last10" ? 10 : mode === "last50" ? 50 : 100;
+            const res = await fetch("/api/reports/incident", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ lastN }),
+            });
+            const data = await res.json();
+            if (data.report) {
+                setReportContent(data.report);
+            }
+        } catch (e) {
+            console.error("Report generation failed:", e);
+        } finally {
+            setReportLoading(false);
+        }
+    };
+
+    const downloadReport = () => {
+        if (!reportContent) return;
+        const blob = new Blob([reportContent], { type: "text/markdown" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `logvault-incident-report-${new Date().toISOString().split("T")[0]}.md`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
 
     const fetchLogs = async () => {
         try {
@@ -92,6 +135,27 @@ export default function LogDashboard() {
                 </div>
 
                 <div className="relative flex items-center justify-center sm:justify-end gap-2 w-full sm:w-auto">
+                    {/* Incident Report Button */}
+                    <button
+                        onClick={() => setIsReportModalOpen(true)}
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-white/40 hover:text-white hover:bg-orange-500/10 transition-all border border-transparent hover:border-orange-500/20"
+                        title="Incident Report"
+                    >
+                        <FileText size={18} />
+                        <span className="hidden sm:inline">Report</span>
+                    </button>
+
+                    {/* Chain Status Indicator */}
+                    {chainStatus && (
+                        <div className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] sm:text-xs font-bold ${chainStatus.valid
+                                ? "text-green-400/80 bg-green-500/5 border border-green-500/10"
+                                : "text-red-400/80 bg-red-500/5 border border-red-500/10"
+                            }`}>
+                            {chainStatus.valid ? <CheckCircle size={14} /> : <XCircle size={14} />}
+                            <span className="hidden sm:inline">{chainStatus.valid ? "Chain OK" : "Chain Broken"}</span>
+                            <Link size={12} />
+                        </div>
+                    )}
                     {/* Public Share Button */}
                     <button
                         onClick={() => setIsShareModalOpen(true)}
@@ -242,8 +306,112 @@ export default function LogDashboard() {
             <ShareModal
                 isOpen={isShareModalOpen}
                 onClose={() => setIsShareModalOpen(false)}
-                logs={filteredLogs.slice(0, 100)} // Share current visible logs (max 100)
+                logs={filteredLogs.slice(0, 100)}
             />
+
+            {/* Incident Report Modal */}
+            <AnimatePresence>
+                {isReportModalOpen && (
+                    <>
+                        <div
+                            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+                            onClick={() => { setIsReportModalOpen(false); setReportContent(null); }}
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="fixed inset-4 sm:inset-10 z-50 bg-[#0a0a0f] border border-white/10 rounded-3xl shadow-2xl overflow-hidden flex flex-col"
+                        >
+                            {/* Header */}
+                            <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-orange-500/10 rounded-xl">
+                                        <FileText size={20} className="text-orange-400" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-lg font-black text-white">Incident Report Generator</h2>
+                                        <p className="text-[10px] text-white/30 font-medium">Forensischer Vorfallsbericht mit Hash-Chain-Verifizierung</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => { setIsReportModalOpen(false); setReportContent(null); }}
+                                    className="p-2 hover:bg-white/5 rounded-xl transition-all"
+                                >
+                                    <X size={20} className="text-white/40" />
+                                </button>
+                            </div>
+
+                            {/* Content */}
+                            <div className="flex-1 overflow-y-auto p-6">
+                                {!reportContent ? (
+                                    <div className="max-w-md mx-auto space-y-6 py-10">
+                                        <div className="text-center space-y-2">
+                                            <p className="text-white/60 text-sm">Wähle den Zeitraum für den Incident Report:</p>
+                                        </div>
+                                        <div className="space-y-3">
+                                            <button
+                                                onClick={() => generateReport("last10")}
+                                                disabled={reportLoading}
+                                                className="w-full px-6 py-4 bg-white/5 hover:bg-orange-500/10 border border-white/10 hover:border-orange-500/20 rounded-2xl text-left transition-all group"
+                                            >
+                                                <p className="text-sm font-bold text-white group-hover:text-orange-400 transition-colors">Letzte 10 Events</p>
+                                                <p className="text-[10px] text-white/30">Schnellübersicht der aktuellsten Ereignisse</p>
+                                            </button>
+                                            <button
+                                                onClick={() => generateReport("last50")}
+                                                disabled={reportLoading}
+                                                className="w-full px-6 py-4 bg-white/5 hover:bg-orange-500/10 border border-white/10 hover:border-orange-500/20 rounded-2xl text-left transition-all group"
+                                            >
+                                                <p className="text-sm font-bold text-white group-hover:text-orange-400 transition-colors">Letzte 50 Events</p>
+                                                <p className="text-[10px] text-white/30">Detaillierter Vorfallsbericht</p>
+                                            </button>
+                                            <button
+                                                onClick={() => generateReport("all")}
+                                                disabled={reportLoading}
+                                                className="w-full px-6 py-4 bg-white/5 hover:bg-orange-500/10 border border-white/10 hover:border-orange-500/20 rounded-2xl text-left transition-all group"
+                                            >
+                                                <p className="text-sm font-bold text-white group-hover:text-orange-400 transition-colors">Alle Events (max. 100)</p>
+                                                <p className="text-[10px] text-white/30">Vollständiger forensischer Report</p>
+                                            </button>
+                                        </div>
+                                        {reportLoading && (
+                                            <div className="flex justify-center py-4">
+                                                <div className="w-6 h-6 border-2 border-orange-500/20 border-t-orange-400 rounded-full animate-spin" />
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        <pre className="bg-white/5 border border-white/10 rounded-2xl p-6 text-xs text-white/80 font-mono whitespace-pre-wrap overflow-x-auto leading-relaxed">
+                                            {reportContent}
+                                        </pre>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Footer */}
+                            {reportContent && (
+                                <div className="flex items-center justify-between px-6 py-4 border-t border-white/5">
+                                    <button
+                                        onClick={() => setReportContent(null)}
+                                        className="px-4 py-2 text-xs font-bold text-white/40 hover:text-white transition-all"
+                                    >
+                                        ← Zurück
+                                    </button>
+                                    <button
+                                        onClick={downloadReport}
+                                        className="flex items-center gap-2 px-6 py-2.5 bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 rounded-xl text-xs font-bold text-orange-400 transition-all"
+                                    >
+                                        <Download size={14} />
+                                        Download (.md)
+                                    </button>
+                                </div>
+                            )}
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

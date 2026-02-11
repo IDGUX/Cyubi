@@ -1,71 +1,92 @@
 <div align="center">
 
-# 🌌 LogVault
+# 🛡️ LogVault
 
-### Next-Gen Zero-Knowledge Log Intelligence & Premium Analytics
+### Forensic-Grade Event Vault for IT Teams
 
 [![Status](https://img.shields.io/badge/Status-Production--Ready-blueviolet?style=for-the-badge)](https://github.com/IDGUX/LogVault)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
-[![AI Powered](https://img.shields.io/badge/AI-Intelligence-purple?style=for-the-badge&logo=openai)](https://datadus.at)
 
 ![LogVault Hero](public/assets/hero.png)
 
-**LogVault** is not just another log tool. It's a high-performance, aesthetically stunning log management system designed for the era of AI. It combines raw technical power with a premium, glassmorphic UI and deep AI-driven log interpretation.
+**LogVault** is a tamper-proof event vault for IT service providers and SMBs.
+It captures, chains, and preserves security-relevant events with cryptographic integrity —
+so you can prove what happened, when, and why.
 
-[Explore Features](#-features) • [Getting Started](#-quick-start) • [Deployment](#-deployment) • [Join Community](https://github.com/IDGUX/LogVault/discussions)
+[Features](#-core-features) • [What LogVault is NOT](#-what-logvault-is-not) • [Quick Start](#-quick-start) • [Deployment](#-deployment) • [Contributing](CONTRIBUTING.md)
 
 </div>
 
 ---
 
-## 🛠 Why LogVault?
-Most log management tools are either "too big to fail" enterprise behemoths or bare-bones CLI scripts. **LogVault** bridges the gap. It is a focused, intelligent, and forensic-grade log vault for environments where every second of history matters.
+## 🚫 What LogVault is NOT
+
+LogVault is **not** a general-purpose log management system.
+
+- ❌ **Not a log aggregator** — LogVault doesn't ingest terabytes of raw logs. It stores only **selected, relevant events**.
+- ❌ **Not a monitoring tool** — LogVault doesn't do real-time dashboards or alerting pipelines. It focuses on **forensic proof**.
+- ❌ **Not a log pipeline** — LogVault doesn't stream or transform logs. It's an **event vault** with cryptographic integrity.
+- ❌ **Not an enterprise SIEM** — LogVault targets **small and mid-sized teams**, not hyperscaler environments.
+
+**LogVault does one thing well:** It takes security-relevant events, chains them cryptographically, and makes them available as tamper-proof incident documentation.
 
 ---
 
-## ✨ Features that Wow
+## 🎯 Who is LogVault For?
 
-### 🛰️ The "Blackbox" Flash-Archive (USB Sync)
-LogVault acts like a **Flight Recorder** for your infrastructure. Enable "Auto-Sync" to mirror every incoming log message directly to an external USB drive in real-time. 
-- **Forensic Ready:** Even if the server is compromised or the database wiped, your logs are safe on the physical "Blackbox" drive.
-- **Offline Analytics:** Move the drive to any machine for air-gapped forensic analysis.
+**Primary audience:**
+- 🏢 **IT Service Providers** — Document incidents for clients with proof
+- 🏭 **SMBs (KMU)** — Affordable, self-hosted incident tracking without enterprise overhead
+- 🔍 **Post-Incident Teams** — Reconstruct what happened after a breach or outage
 
-#### 🛡️ Hardening your Blackbox
-To achieve a "true" flight recorder setup, we recommend:
-1. **Physical Write-Protect:** Use a USB stick with a physical sliding switch (e.g., Kanguru Solutions) to prevent the OS from ever deleting logs once written.
-2. **WORM Media:** Use Write-Once-Read-Many media (like DVD-RAM or specialized adapters) for permanent archival.
-3. **Air-Gapped Rotation:** Swap your "Blackbox" drive weekly and store it in a physical safe.
+**Not for:**
+- ❌ Hyperscalers needing petabyte-scale log search
+- ❌ Real-time monitoring / APM dashboards
+- ❌ Big Data analytics pipelines
 
-### 🧠 Zero-Knowledge AI Intelligence
-Connect your choice of **OpenAI, Anthropic, Gemini, Mistral**, or even a **Local LLM (Ollama)**. LogVault interpret logs in real-time, providing deep security insights and suggested patterns without compromising your privacy.
+---
 
-### 🎨 Premium "Glass" Aesthetics
-Built for developers who care about design. A fully responsive, vibrant, glassmorphic interface that feels more like a command center than a dashboard.
+## ✨ Core Features
+
+### 🔗 Tamper-Proof Hash Chain
+Every event is cryptographically linked to its predecessor using SHA-256. If anyone modifies, deletes, or reorders an event, the chain breaks — and LogVault detects it. No blockchain overhead, just math.
+
+### 📋 Incident Report Generator
+Select events, generate a human-readable incident report with timeline, root cause summary, and relevance assessment. Export as Markdown. Show your client or management exactly what happened.
+
+### 🛰️ Flight Recorder (USB Sync)
+Mirror every incoming event to an external USB drive in real-time. Even if the server is compromised, your logs survive on physical media.
+
+### 🧠 AI Intelligence (Opt-In)
+Connect OpenAI, Anthropic, Gemini, Mistral, or a local LLM (Ollama). AI interprets events in real-time — but **only if you enable it**. No data leaves your system by default.
+
+### 🎨 Premium Glass UI
+A fully responsive, glassmorphic interface built for operators who care about clarity and design.
 
 ### 🛰️ Native Syslog Ingestion
-Universal compatibility. Ingest logs from servers, gateways, IoT devices, or web apps. LogVault acts as a central hub for your entire infrastructure.
+Ingest from servers, gateways, IoT devices, or web apps. LogVault acts as a central event hub.
 
 ### 🔔 Smart Webhook Alarms
-Get notified where it matters. Configure smart alarms that fire based on AI-determined severity levels, sent directly to Slack, Discord, or any custom webhook.
+Fire alerts based on severity levels to Slack, Discord, or any webhook endpoint.
 
 ---
 
 ## 🚀 Quick Start
 
-### 1. Zero-Config Install
+### 1. Clone & Install
 ```bash
 git clone https://github.com/IDGUX/LogVault.git
 cd LogVault
 npm install
 ```
 
-### 2. Initialize Core
+### 2. Initialize Database
 ```bash
 npx prisma db push
 ```
 
-### 3. Ignite
+### 3. Start
 ```bash
 npm run dev
 ```
@@ -74,7 +95,7 @@ npm run dev
 
 ## 🐳 Deployment
 
-Deploy anywhere in seconds. LogVault is optimized for Docker and Proxmox environments.
+Deploy anywhere in seconds. Optimized for Docker and Proxmox.
 
 ```yaml
 # docker-compose.yml
@@ -92,18 +113,14 @@ services:
 
 ## 💾 Backup & Persistence
 
-LogVault uses SQLite for simplicity and high performance. Your data is protected through Docker volumes.
+LogVault uses SQLite as its reference storage implementation. Your data is protected through Docker volumes.
 
-### Data Persistence
-Base configurations and logs are stored in a Docker volume `sqlite_data`. This ensures your data survives container updates and restarts.
-
-### Manual Backup
-To create a manual snapshot of your database, run:
 ```bash
+# Manual backup
 docker cp log-tool:/app/prisma/prod.db ./backup_logvault_$(date +%F).db
 ```
 
-To restore a backup, simply copy it back to the volume or replace the file in your mounted directory.
+> **Note:** SQLite is a deliberate choice for single-node simplicity. The architecture allows swapping the storage backend — see [DECISIONS.md](DECISIONS.md) for details.
 
 ---
 
@@ -111,7 +128,8 @@ To restore a backup, simply copy it back to the volume or replace the file in yo
 
 - **Framework:** Next.js 15 (App Router)
 - **Database:** SQLite + Prisma ORM
-- **Intelligence:** OpenAI, Anthropic, Gemini, Mistral, Ollama
+- **Integrity:** SHA-256 Hash Chain
+- **Intelligence:** OpenAI, Anthropic, Gemini, Mistral, Ollama (opt-in)
 - **Styling:** Tailwind CSS + Glassmorphism
 - **Real-time:** UDP Syslog Receiver
 

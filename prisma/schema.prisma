@@ -20,6 +20,8 @@ model Log {
   ipAddress      String?
   metadata       String?
   isAiAnalyzed   Boolean  @default(false)
+  eventHash      String?
+  previousHash   String?
 }
 
 

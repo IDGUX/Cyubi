@@ -13,6 +13,7 @@ services:
     environment:
       - DATABASE_URL=file:/app/prisma/prod.db
       - NODE_ENV=production
+      # ⚠️ CHANGE THIS: Generate a secure secret with: openssl rand -hex 32
       - JWT_SECRET=your_ultra_secure_secret_change_me
 
 volumes:
