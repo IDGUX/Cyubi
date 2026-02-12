@@ -24,6 +24,11 @@ export async function middleware(request: NextRequest) {
         return NextResponse.next();
     }
 
+    // 3. Allow chain verification & repair endpoints
+    if (pathname.startsWith('/api/verify')) {
+        return NextResponse.next();
+    }
+
     // 3. Allow internal syslog-receiver access to settings and sources
     const host = request.headers.get('host') || "";
     const isInternal = host === 'localhost:3000' || host === '127.0.0.1:3000' || host === '::1:3000';
@@ -32,11 +37,6 @@ export async function middleware(request: NextRequest) {
     if ((pathname === '/api/settings' || pathname === '/api/sources') &&
         request.method === 'GET' &&
         (isInternal || hasInternalKey)) {
-        return NextResponse.next();
-    }
-
-    // 4. Allow verify/backfill from localhost (chain repair from server shell)
-    if (pathname.startsWith('/api/verify') && (isInternal || hasInternalKey)) {
         return NextResponse.next();
     }
 
