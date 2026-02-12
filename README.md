@@ -8,7 +8,7 @@
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
-![Cyubi Hero](public/assets/hero.png)
+![Cyubi Hero](public/assets/cyubi-hero.png)
 
 **Cyubi** is a tamper-proof event vault for IT service providers and SMBs.
 It captures, chains, and preserves security-relevant events with cryptographic integrity —
