@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { analyzeLog } from "@/lib/analyst";
-import { getLastHash, computeEventHash } from "@/lib/integrity";
+import { createLogWithHash } from "@/lib/integrity";
 import { getLogModel } from "@/lib/types";
 
 export async function POST(req: Request) {
@@ -38,34 +38,17 @@ export async function POST(req: Request) {
         // 3. intelligent Analysis
         const analysis = await analyzeLog(message, resolvedSource);
 
-        // 4. Store in DB
-        const logModel = getLogModel(prisma);
-
-        // 4a. Compute Hash Chain
-        const previousHash = await getLastHash();
-        const eventTimestamp = new Date();
-        const eventHash = computeEventHash(previousHash, {
+        // 4. Store in DB atomically (advisory lock prevents chain breaks)
+        const log = await createLogWithHash({
             level: level || "INFO",
             source: resolvedSource,
             message: message,
-            timestamp: eventTimestamp.toISOString(),
-        });
-
-        const log = await logModel.create({
-            data: {
-                level: level || "INFO",
-                source: resolvedSource,
-                message: message,
-                interpretation: analysis.interpretation,
-                category: analysis.category,
-                deviceType: analysis.deviceType,
-                hostname: hostname,
-                ipAddress: ipAddress,
-                metadata: metadata ? JSON.stringify(metadata) : null,
-                timestamp: eventTimestamp,
-                eventHash: eventHash,
-                previousHash: previousHash,
-            },
+            interpretation: analysis.interpretation,
+            category: analysis.category,
+            deviceType: analysis.deviceType,
+            hostname: hostname,
+            ipAddress: ipAddress,
+            metadata: metadata ? JSON.stringify(metadata) : null,
         });
 
         // 5. Trigger Webhook Alerts for critical events

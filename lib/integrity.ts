@@ -1,5 +1,6 @@
 import { createHash } from "crypto";
 import { prisma } from "./prisma";
+import { getLogModel } from "./types";
 
 /**
  * LogVault Hash-Chain Integrity Module
@@ -123,4 +124,67 @@ export async function verifyChain(): Promise<{
         verifiedEvents: logs.length,
         details: `All ${logs.length} events verified. Hash chain is intact.`,
     };
+}
+
+/**
+ * Atomically create a log entry with a proper hash chain link.
+ * Uses a PostgreSQL advisory lock to serialize all chain writes,
+ * preventing race conditions from concurrent syslog ingestion.
+ *
+ * Lock ID 42 is an arbitrary constant used exclusively for chain serialization.
+ */
+export async function createLogWithHash(data: {
+    level: string;
+    source: string;
+    message: string;
+    interpretation: string | null;
+    category: string | null;
+    deviceType: string | null;
+    hostname?: string | null;
+    ipAddress?: string | null;
+    metadata?: string | null;
+}): Promise<any> {
+    return await prisma.$transaction(async (tx) => {
+        // Acquire an advisory lock scoped to this transaction
+        await tx.$executeRawUnsafe("SELECT pg_advisory_xact_lock(42)");
+
+        const logModel = getLogModel(tx as any);
+
+        // Get the latest hash inside the lock
+        const lastLog = await logModel.findFirst({
+            where: { eventHash: { not: null } },
+            orderBy: { timestamp: "desc" },
+            select: { eventHash: true },
+        });
+        const previousHash = lastLog?.eventHash || "0";
+
+        const eventTimestamp = new Date();
+        const eventHash = computeEventHash(previousHash, {
+            level: data.level,
+            source: data.source,
+            message: data.message,
+            timestamp: eventTimestamp.toISOString(),
+        });
+
+        const log = await logModel.create({
+            data: {
+                level: data.level,
+                source: data.source,
+                message: data.message,
+                interpretation: data.interpretation,
+                category: data.category,
+                deviceType: data.deviceType,
+                hostname: data.hostname || null,
+                ipAddress: data.ipAddress || null,
+                metadata: data.metadata || null,
+                timestamp: eventTimestamp,
+                eventHash: eventHash,
+                previousHash: previousHash,
+            },
+        });
+
+        return log;
+    }, {
+        timeout: 10000, // 10 second timeout
+    });
 }
