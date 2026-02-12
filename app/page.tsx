@@ -22,7 +22,7 @@ export default function Home() {
               <Shield className="text-white/80" size={24} />
             </div>
             <h1 className="text-2xl font-black tracking-tighter uppercase italic">
-              Log<span className="text-white/40">Vault</span>
+              Cyubi
             </h1>
           </div>
           <p className="text-[10px] sm:text-xs text-white/30 font-medium tracking-[0.2em] uppercase sm:ml-11 text-center sm:text-left">
