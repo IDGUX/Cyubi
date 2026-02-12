@@ -35,6 +35,11 @@ export async function middleware(request: NextRequest) {
         return NextResponse.next();
     }
 
+    // 4. Allow verify/backfill from localhost (chain repair from server shell)
+    if (pathname.startsWith('/api/verify') && (isInternal || hasInternalKey)) {
+        return NextResponse.next();
+    }
+
     // Check if token exists and is valid
     if (!token) {
         return NextResponse.redirect(new URL('/login', request.url));
