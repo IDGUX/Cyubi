@@ -34,7 +34,7 @@ export function computeEventHash(previousHash: string, payload: HashPayload): st
 export async function getLastHash(): Promise<string> {
     const lastLog = await prisma.log.findFirst({
         where: { eventHash: { not: null } },
-        orderBy: { timestamp: "desc" },
+        orderBy: [{ timestamp: "desc" }, { id: "desc" }],
         select: { eventHash: true },
     });
 
@@ -58,7 +58,7 @@ export async function verifyChain(): Promise<{
             eventHash: { not: null },
             previousHash: { not: null },
         },
-        orderBy: { timestamp: "asc" },
+        orderBy: [{ timestamp: "asc" }, { id: "asc" }],
         select: {
             id: true,
             level: true,
@@ -153,7 +153,7 @@ export async function createLogWithHash(data: {
         // Get the latest hash inside the lock
         const lastLog = await logModel.findFirst({
             where: { eventHash: { not: null } },
-            orderBy: { timestamp: "desc" },
+            orderBy: [{ timestamp: "desc" }, { id: "desc" }],
             select: { eventHash: true },
         });
         const previousHash = lastLog?.eventHash || "0";

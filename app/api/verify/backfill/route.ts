@@ -18,7 +18,7 @@ export async function POST() {
 
         // Get ALL logs ordered chronologically
         const allLogs = await logModel.findMany({
-            orderBy: { timestamp: "asc" },
+            orderBy: [{ timestamp: "asc" }, { id: "asc" }],
             select: {
                 id: true,
                 level: true,
