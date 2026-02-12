@@ -1,5 +1,5 @@
 /**
- * Shared type definitions for LogVault.
+ * Shared type definitions for Cyubi.
  */
 
 export interface LogEvent {

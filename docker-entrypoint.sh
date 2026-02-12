@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-echo "🚀 Starting LogVault container..."
+echo "🚀 Starting Cyubi container..."
 
 # Regenerate Prisma Client to match the current schema
 echo "⚙️ Regenerating Prisma client..."

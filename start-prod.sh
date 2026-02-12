@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "🚀 Starting LogVault in Production Mode..."
+echo "🚀 Starting Cyubi in Production Mode..."
 # Ensure settings are correct and schema is up to date
 sudo docker compose run --rm app npx prisma db push --accept-data-loss
 sudo docker compose run --rm app node scripts/fix-settings.js
@@ -15,7 +15,7 @@ fi
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "✅ LogVault is up and running!"
+echo "✅ Cyubi is up and running!"
 echo "🌐 Web UI:          http://$IP_ADDR:3000"
 echo "📡 Syslog Receiver:  udp://$IP_ADDR:514"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

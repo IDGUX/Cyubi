@@ -72,7 +72,7 @@ export async function POST(req: Request) {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({
-                                    text: `🚨 *LogVault Alarm* (${level})\n*Quelle:* ${resolvedSource}\n*Filter:* ${analysis.category}\n*Nachricht:* ${message}`
+                                    text: `🚨 *Cyubi Alarm* (${level})\n*Quelle:* ${resolvedSource}\n*Filter:* ${analysis.category}\n*Nachricht:* ${message}`
                                 }),
                             });
                         } catch (err: any) {
@@ -95,7 +95,7 @@ export async function POST(req: Request) {
             if (config.USB_AUTO_SYNC === "true" && config.USB_PATH) {
                 const fs = await import("fs/promises");
                 const path = await import("path");
-                const usbFilePath = path.join(config.USB_PATH, `logvault_sync_${new Date().toISOString().split('T')[0]}.jsonl`);
+                const usbFilePath = path.join(config.USB_PATH, `cyubi_sync_${new Date().toISOString().split('T')[0]}.jsonl`);
                 const logLine = JSON.stringify({
                     timestamp: log.timestamp,
                     level: log.level,

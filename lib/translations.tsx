@@ -159,7 +159,7 @@ export const translations: Translations = {
     macAutoDesc: { de: "Nutzt LaunchAgents, um den Mac permanent zu überwachen.", en: "Uses LaunchAgents for permanent Mac monitoring." },
     copy: { de: "Kopieren", en: "Copy" },
     copied: { de: "Kopiert!", en: "Copied!" },
-    rsyslogHeader: { de: "# Sendet ALLES an LogVault (via UDP 514)", en: "# Sends EVERYTHING to LogVault (via UDP 514)" },
+    rsyslogHeader: { de: "# Sendet ALLES an Cyubi (via UDP 514)", en: "# Sends EVERYTHING to Cyubi (via UDP 514)" },
     cronjobHeader: { de: "# Füge dies in die Crontab ein (crontab -e), um alle 5 Minuten zu senden:", en: "# Add this to crontab (crontab -e) to send every 5 minutes:" },
     winAutoHeader: { de: "# PowerShell Script für permanenten Herzschlag (In Aufgabenplanung legen):", en: "# PowerShell script for permanent heartbeat (Add to Task Scheduler):" },
     macAutoHeader: { de: "# macOS LaunchAgent für automatische Logs:", en: "# macOS LaunchAgent for automatic logs:" },
@@ -225,7 +225,7 @@ export function TranslationProvider({ children }: { children: React.ReactNode })
     const [language, setLanguageState] = useState<Language>("de");
 
     useEffect(() => {
-        const savedLang = localStorage.getItem("logvault_lang") as Language;
+        const savedLang = localStorage.getItem("cyubi_lang") as Language;
         if (savedLang && (savedLang === "de" || savedLang === "en")) {
             setLanguageState(savedLang);
         }
@@ -233,7 +233,7 @@ export function TranslationProvider({ children }: { children: React.ReactNode })
 
     const setLanguage = (lang: Language) => {
         setLanguageState(lang);
-        localStorage.setItem("logvault_lang", lang);
+        localStorage.setItem("cyubi_lang", lang);
     };
 
     const t = (key: string) => {

@@ -123,7 +123,7 @@ function generateMarkdownReport(events: LogEvent[], chainStatus: ChainStatus): s
     }
 
     // Build the report
-    let md = `# 🛡️ LogVault Incident Report\n\n`;
+    let md = `# 🛡️ Cyubi Incident Report\n\n`;
     md += `**Generated:** ${now.toISOString()}\n`;
     md += `**Period:** ${firstEvent.timestamp.toISOString()} → ${lastEvent.timestamp.toISOString()}\n`;
     md += `**Events Analyzed:** ${events.length}\n`;
@@ -230,7 +230,7 @@ function generateMarkdownReport(events: LogEvent[], chainStatus: ChainStatus): s
     md += `\n`;
 
     md += `---\n\n`;
-    md += `*Dieser Report wurde automatisch von LogVault generiert. Die kryptografische Hash-Kette gewährleistet die Integrität der protokollierten Ereignisse.*\n`;
+    md += `*Dieser Report wurde automatisch von Cyubi generiert. Die kryptografische Hash-Kette gewährleistet die Integrität der protokollierten Ereignisse.*\n`;
 
     return md;
 }

@@ -108,7 +108,7 @@ export default function LoginPage() {
                         </div>
                         <div className="text-left">
                             <h1 className="text-3xl font-black tracking-tighter uppercase italic leading-none">
-                                Log<span className="text-white/40">Vault</span>
+                                Cyu<span className="text-white/40">bi</span>
                             </h1>
                             <p className="text-[10px] text-white/30 font-bold tracking-[0.3em] uppercase">
                                 {t("systemSecurity")}
@@ -216,7 +216,7 @@ export default function LoginPage() {
                         </div>
                     </div>
                     <p className="text-[9px] text-white/10 font-medium uppercase tracking-[0.4em]">
-                        LogVault Security Framework v1.0.4
+                        Cyubi Security Framework v1.0.4
                     </p>
                 </div>
             </div>

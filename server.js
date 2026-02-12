@@ -1,7 +1,7 @@
 const { spawn } = require('child_process');
 const path = require('path');
 
-console.log('🚀 Starting LogVault System...');
+console.log('🚀 Starting Cyubi System...');
 
 // 1. Start Next.js App
 const isProduction = process.env.NODE_ENV === 'production';
@@ -41,7 +41,7 @@ setTimeout(async () => {
 
 // Handle Shutdown
 const cleanup = () => {
-    console.log('\n🛑 Shutting down LogVault...');
+    console.log('\n🛑 Shutting down Cyubi...');
     clearInterval(maintenanceInterval);
     nextApp.kill();
     syslogReceiver.kill();

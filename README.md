@@ -1,39 +1,39 @@
 <div align="center">
 
-# 🛡️ LogVault
+# 🛡️ Cyubi
 
 ### Forensic-Grade Event Vault for IT Teams
 
-[![Status](https://img.shields.io/badge/Status-Production--Ready-blueviolet?style=for-the-badge)](https://github.com/IDGUX/LogVault)
+[![Status](https://img.shields.io/badge/Status-Production--Ready-blueviolet?style=for-the-badge)](https://github.com/IDGUX/Cyubi)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
-![LogVault Hero](public/assets/hero.png)
+![Cyubi Hero](public/assets/hero.png)
 
-**LogVault** is a tamper-proof event vault for IT service providers and SMBs.
+**Cyubi** is a tamper-proof event vault for IT service providers and SMBs.
 It captures, chains, and preserves security-relevant events with cryptographic integrity —
 so you can prove what happened, when, and why.
 
-[Features](#-core-features) • [What LogVault is NOT](#-what-logvault-is-not) • [Quick Start](#-quick-start) • [Deployment](#-deployment) • [Contributing](CONTRIBUTING.md)
+[Features](#-core-features) • [What Cyubi is NOT](#-what-cyubi-is-not) • [Quick Start](#-quick-start) • [Deployment](#-deployment) • [Contributing](CONTRIBUTING.md)
 
 </div>
 
 ---
 
-## 🚫 What LogVault is NOT
+## 🚫 What Cyubi is NOT
 
-LogVault is **not** a general-purpose log management system.
+Cyubi is **not** a general-purpose log management system.
 
-- ❌ **Not a log aggregator** — LogVault doesn't ingest terabytes of raw logs. It stores only **selected, relevant events**.
-- ❌ **Not a monitoring tool** — LogVault doesn't do real-time dashboards or alerting pipelines. It focuses on **forensic proof**.
-- ❌ **Not a log pipeline** — LogVault doesn't stream or transform logs. It's an **event vault** with cryptographic integrity.
-- ❌ **Not an enterprise SIEM** — LogVault targets **small and mid-sized teams**, not hyperscaler environments.
+- ❌ **Not a log aggregator** — Cyubi doesn't ingest terabytes of raw logs. It stores only **selected, relevant events**.
+- ❌ **Not a monitoring tool** — Cyubi doesn't do real-time dashboards or alerting pipelines. It focuses on **forensic proof**.
+- ❌ **Not a log pipeline** — Cyubi doesn't stream or transform logs. It's an **event vault** with cryptographic integrity.
+- ❌ **Not an enterprise SIEM** — Cyubi targets **small and mid-sized teams**, not hyperscaler environments.
 
-**LogVault does one thing well:** It takes security-relevant events, chains them cryptographically, and makes them available as tamper-proof incident documentation.
+**Cyubi does one thing well:** It takes security-relevant events, chains them cryptographically, and makes them available as tamper-proof incident documentation.
 
 ---
 
-## 🎯 Who is LogVault For?
+## 🎯 Who is Cyubi For?
 
 **Primary audience:**
 - 🏢 **IT Service Providers** — Document incidents for clients with proof
@@ -50,7 +50,7 @@ LogVault is **not** a general-purpose log management system.
 ## ✨ Core Features
 
 ### 🔗 Tamper-Proof Hash Chain
-Every event is cryptographically linked to its predecessor using SHA-256. If anyone modifies, deletes, or reorders an event, the chain breaks — and LogVault detects it. No blockchain overhead, just math.
+Every event is cryptographically linked to its predecessor using SHA-256. If anyone modifies, deletes, or reorders an event, the chain breaks — and Cyubi detects it. No blockchain overhead, just math.
 
 ### 📋 Incident Report Generator
 Select events, generate a human-readable incident report with timeline, root cause summary, and relevance assessment. Export as Markdown. Show your client or management exactly what happened.
@@ -65,7 +65,7 @@ Connect OpenAI, Anthropic, Gemini, Mistral, or a local LLM (Ollama). AI interpre
 A fully responsive, glassmorphic interface built for operators who care about clarity and design.
 
 ### 🛰️ Native Syslog Ingestion
-Ingest from servers, gateways, IoT devices, or web apps. LogVault acts as a central event hub.
+Ingest from servers, gateways, IoT devices, or web apps. Cyubi acts as a central event hub.
 
 ### 🔔 Smart Webhook Alarms
 Fire alerts based on severity levels to Slack, Discord, or any webhook endpoint.
@@ -76,8 +76,8 @@ Fire alerts based on severity levels to Slack, Discord, or any webhook endpoint.
 
 ### 1. Clone & Install
 ```bash
-git clone https://github.com/IDGUX/LogVault.git
-cd LogVault
+git clone https://github.com/IDGUX/Cyubi.git
+cd Cyubi
 npm install
 ```
 
@@ -111,7 +111,7 @@ services:
       - "3000:3000"
       - "514:5140/udp"
     environment:
-      - DATABASE_URL=postgresql://logvault:logvault@postgres:5432/logvault
+      - DATABASE_URL=postgresql://cyubi:cyubi@postgres:5432/cyubi
       - JWT_SECRET=your_ultra_secure_secret
     depends_on:
       postgres:
@@ -122,21 +122,21 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U logvault"]
+      test: ["CMD-SHELL", "pg_isready -U cyubi"]
 ```
 
 ---
 
 ## 💾 Backup & Persistence
 
-LogVault uses PostgreSQL for reliable, concurrent data storage. Your data is protected through Docker volumes.
+Cyubi uses PostgreSQL for reliable, concurrent data storage. Your data is protected through Docker volumes.
 
 ```bash
 # Manual backup
-docker exec logvault-db pg_dump -U logvault logvault > backup_logvault_$(date +%F).sql
+docker exec cyubi-db pg_dump -U cyubi cyubi > backup_cyubi_$(date +%F).sql
 
 # Restore
-cat backup.sql | docker exec -i logvault-db psql -U logvault logvault
+cat backup.sql | docker exec -i cyubi-db psql -U cyubi cyubi
 ```
 
 > **Note:** PostgreSQL was chosen over SQLite for its superior concurrency handling — see [DECISIONS.md](DECISIONS.md) for details.
@@ -161,5 +161,5 @@ Created with ❤️ by [Datadus](https://datadus.at). We build IT-Automation and
 ---
 
 <div align="center">
-  <sub>Built with LogVault. Star if you love it! ⭐</sub>
+  <sub>Built with Cyubi. Star if you love it! ⭐</sub>
 </div>

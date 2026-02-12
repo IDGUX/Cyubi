@@ -1,6 +1,6 @@
-# LogVault Deployment Guide for Proxmox (Docker)
+# Cyubi Deployment Guide for Proxmox (Docker)
 
-Diese Anleitung zeigt dir, wie du LogVault mit **Docker** auf deinem Proxmox-Server installierst. Das ist die einfachste und sauberste Methode.
+Diese Anleitung zeigt dir, wie du Cyubi mit **Docker** auf deinem Proxmox-Server installierst. Das ist die einfachste und sauberste Methode.
 
 Wir empfehlen, dafür eine kleine **Linux VM** (z.B. Ubuntu Server) oder einen **LXC Container** (Ubuntu/Debian Template) in Proxmox zu nutzen.
 
@@ -29,14 +29,14 @@ sudo systemctl enable docker
 sudo systemctl start docker
 ```
 
-## Schritt 2: LogVault installieren
+## Schritt 2: Cyubi installieren
 
 ```bash
 # 1. Repository herunterladen
-git clone https://github.com/IDGUX/LogVault.git
+git clone https://github.com/IDGUX/Cyubi.git
 
 # 2. In den Ordner wechseln
-cd LogVault
+cd Cyubi
 
 # 3. Starten! (Der Profi-Weg)
 chmod +x start-prod.sh

@@ -1,6 +1,6 @@
 # Architecture Decision Records (ADR)
 
-This document captures key design decisions for LogVault, including context, reasoning, and trade-offs. Each decision has a status: **Accepted**, **Superseded**, or **Deprecated**.
+This document captures key design decisions for Cyubi, including context, reasoning, and trade-offs. Each decision has a status: **Accepted**, **Superseded**, or **Deprecated**.
 
 ---
 
@@ -10,7 +10,7 @@ This document captures key design decisions for LogVault, including context, rea
 **Date:** 2026-02-11
 
 ### Context
-LogVault needs a storage layer. Enterprise tools use Elasticsearch, PostgreSQL, or custom distributed stores. Our target audience is SMBs and IT service providers running single-node deployments.
+Cyubi needs a storage layer. Enterprise tools use Elasticsearch, PostgreSQL, or custom distributed stores. Our target audience is SMBs and IT service providers running single-node deployments.
 
 ### Decision
 Use SQLite via Prisma ORM as the default and reference storage implementation.
@@ -34,7 +34,7 @@ Use SQLite via Prisma ORM as the default and reference storage implementation.
 **Date:** 2026-02-11
 
 ### Context
-LogVault needs to prove that events have not been modified, deleted, or reordered after capture. Options: Blockchain, Merkle Trees, simple hash chain, external timestamping authority.
+Cyubi needs to prove that events have not been modified, deleted, or reordered after capture. Options: Blockchain, Merkle Trees, simple hash chain, external timestamping authority.
 
 ### Decision
 Use a sequential SHA-256 hash chain where each event's hash includes the previous event's hash, the event payload, and the timestamp.
@@ -87,7 +87,7 @@ redaction: enabled (default)
 **Date:** 2026-02-11
 
 ### Context
-LogVault needs a clear target audience to guide feature priorities, complexity trade-offs, and communication.
+Cyubi needs a clear target audience to guide feature priorities, complexity trade-offs, and communication.
 
 ### Decision
 Primary target: IT service providers and SMBs (KMU) who need post-incident documentation and forensic traceability.

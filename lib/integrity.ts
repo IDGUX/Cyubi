@@ -3,7 +3,7 @@ import { prisma } from "./prisma";
 import { getLogModel } from "./types";
 
 /**
- * LogVault Hash-Chain Integrity Module
+ * Cyubi Hash-Chain Integrity Module
  * 
  * Each event is cryptographically linked to its predecessor via SHA-256.
  * Hash = SHA-256(previousHash + level + source + message + timestamp)

@@ -44,7 +44,7 @@ function logToDisk(msg) {
 }
 
 const VERSION = "1.2.0-BLACKBOX";
-logToDisk(`🛰️ LogVault Syslog Receiver started (v${VERSION})`);
+logToDisk(`🛰️ Cyubi Syslog Receiver started (v${VERSION})`);
 
 let server = null;
 let sources = [];

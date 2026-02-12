@@ -35,7 +35,7 @@ export async function sendWebhookAlert(title: string, message: string, category:
 
     await axios.post(webhookUrl, {
       embeds: [{
-        title: `🚨 LogVault Alert: ${title}`,
+        title: `🚨 Cyubi Alert: ${title}`,
         description: message,
         color: color,
         timestamp: new Date().toISOString(),

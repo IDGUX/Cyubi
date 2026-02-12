@@ -20,7 +20,7 @@ export default function ShareModal({ isOpen, onClose, logs }: ShareModalProps) {
     useEffect(() => {
         if (logs.length > 0) {
             const text = logs.map(l => anonymizeLog(l)).join("\n\n---\n\n");
-            setContent(text + "\n\nShared via LogVault 🛡️");
+            setContent(text + "\n\nShared via Cyubi 🛡️");
         }
     }, [logs]);
 

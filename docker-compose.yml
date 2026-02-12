@@ -2,14 +2,14 @@
 
 services:
   app:
-    container_name: log-tool
+    container_name: cyubi
     build: .
     restart: unless-stopped
     ports:
       - "3000:3000"
       - "514:5140/udp"
     environment:
-      - DATABASE_URL=postgresql://logvault:logvault@postgres:5432/logvault
+      - DATABASE_URL=postgresql://cyubi:cyubi@postgres:5432/cyubi
       - NODE_ENV=production
       # ⚠️ CHANGE THIS: Generate a secure secret with: openssl rand -hex 32
       - JWT_SECRET=your_ultra_secure_secret_change_me
@@ -19,16 +19,16 @@ services:
 
   postgres:
     image: postgres:16-alpine
-    container_name: logvault-db
+    container_name: cyubi-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: logvault
-      POSTGRES_PASSWORD: logvault
-      POSTGRES_DB: logvault
+      POSTGRES_USER: cyubi
+      POSTGRES_PASSWORD: cyubi
+      POSTGRES_DB: cyubi
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U logvault"]
+      test: ["CMD-SHELL", "pg_isready -U cyubi"]
       interval: 5s
       timeout: 5s
       retries: 5

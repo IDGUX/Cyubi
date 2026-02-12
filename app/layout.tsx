@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LogVault - Intelligent Log Management",
+  title: "Cyubi - Intelligent Log Management",
   description: "Sicheres und intelligentes Log-Management-Tool für Profis.",
   icons: {
     icon: "/icon.png",

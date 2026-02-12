@@ -80,7 +80,7 @@ export function useSettings() {
         SECURITY: true, CONFIG: false, SYSTEM: false, INFO: false,
     });
     const [syslogConfig, setSyslogConfig] = useState({ enabled: false, port: "514" });
-    const [usbConfig, setUsbConfig] = useState({ enabled: false, path: "/Volumes/LOGVAULT" });
+    const [usbConfig, setUsbConfig] = useState({ enabled: false, path: "/Volumes/CYUBI" });
     const [retentionConfig, setRetentionConfig] = useState({ days: "30", maxCount: "50000" });
 
     // AI
@@ -171,7 +171,7 @@ export function useSettings() {
             });
             setUsbConfig({
                 enabled: data.USB_AUTO_SYNC === "true",
-                path: data.USB_PATH || "/Volumes/LOGVAULT",
+                path: data.USB_PATH || "/Volumes/CYUBI",
             });
             setRetentionConfig({
                 days: data.LOG_RETENTION_DAYS || "30",

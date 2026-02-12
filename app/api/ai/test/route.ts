@@ -11,10 +11,10 @@ export async function POST(req: Request) {
 
         // Localized strings for the test
         const testPrompt = lang === "de"
-            ? "Antworte kurz: Hallo von LogVault! Die Verbindung steht."
-            : "Respond briefly: Hello from LogVault! Connection established.";
+            ? "Antworte kurz: Hallo von Cyubi! Die Verbindung steht."
+            : "Respond briefly: Hello from Cyubi! Connection established.";
 
-        const result = await callLLM(testPrompt, "LogVault-Test", {
+        const result = await callLLM(testPrompt, "Cyubi-Test", {
             provider,
             apiKey,
             model,
