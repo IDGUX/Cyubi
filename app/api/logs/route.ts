@@ -51,11 +51,11 @@ export async function POST(req: Request) {
 
             if (recentDuplicate) {
                 // Identical log found recently. Increment repeatCount and skip the rest.
+                // Note: Do NOT update 'timestamp' here, as modifying an existing timestamp breaks the cryptographic hash chain!
                 const updatedLog = await logModel.update({
                     where: { id: recentDuplicate.id },
                     data: {
-                        repeatCount: { increment: 1 },
-                        timestamp: new Date() // Update timestamp to reflect the latest occurrence
+                        repeatCount: { increment: 1 }
                     }
                 });
                 return NextResponse.json(updatedLog);

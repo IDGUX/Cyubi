@@ -16,77 +16,82 @@ export async function POST() {
     try {
         const logModel = getLogModel(prisma);
 
-        // Get ALL logs ordered chronologically
-        const allLogs = await logModel.findMany({
-            orderBy: [{ timestamp: "asc" }, { id: "asc" }],
-            select: {
-                id: true,
-                level: true,
-                source: true,
-                message: true,
-                timestamp: true,
-                eventHash: true,
-                previousHash: true,
-            },
-        });
-
-        if (allLogs.length === 0) {
-            return NextResponse.json({
-                success: true,
-                message: "No logs to backfill.",
-                backfilled: 0,
-                total: 0,
-            });
-        }
-
+        const CHUNK_SIZE = 1000;
         let previousHash = "0"; // Genesis
         let backfilled = 0;
+        let total = 0;
+        let lastCursor: { id: string } | null = null;
+        let hasMore = true;
 
-        // Collect all updates first, then batch them
-        const updates: { id: string; eventHash: string; previousHash: string }[] = [];
-
-        for (const log of allLogs) {
-            const expectedHash = computeEventHash(previousHash, {
-                level: log.level,
-                source: log.source,
-                message: log.message,
-                timestamp: log.timestamp.toISOString(),
+        while (hasMore) {
+            const logsChunk: any[] = await logModel.findMany({
+                take: CHUNK_SIZE,
+                skip: lastCursor ? 1 : 0,
+                cursor: lastCursor ? lastCursor : undefined,
+                orderBy: [{ timestamp: "asc" }, { id: "asc" }],
+                select: {
+                    id: true,
+                    level: true,
+                    source: true,
+                    message: true,
+                    timestamp: true,
+                    eventHash: true,
+                    previousHash: true,
+                },
             });
 
-            if (!log.eventHash || log.eventHash !== expectedHash || log.previousHash !== previousHash) {
-                updates.push({
-                    id: log.id,
-                    eventHash: expectedHash,
-                    previousHash: previousHash,
-                });
-                backfilled++;
+            if (logsChunk.length === 0) {
+                hasMore = false;
+                break;
             }
 
-            previousHash = expectedHash;
-        }
+            total += logsChunk.length;
+            const updates: { id: string; eventHash: string; previousHash: string }[] = [];
 
-        // Execute updates in batched transactions (chunks of 500)
-        const CHUNK_SIZE = 500;
-        for (let i = 0; i < updates.length; i += CHUNK_SIZE) {
-            const chunk = updates.slice(i, i + CHUNK_SIZE);
-            await prisma.$transaction(
-                chunk.map((u) =>
-                    logModel.update({
-                        where: { id: u.id },
-                        data: {
-                            eventHash: u.eventHash,
-                            previousHash: u.previousHash,
-                        },
-                    })
-                )
-            );
+            for (const log of logsChunk) {
+                const expectedHash = computeEventHash(previousHash, {
+                    level: log.level,
+                    source: log.source,
+                    message: log.message,
+                    timestamp: log.timestamp.toISOString(),
+                });
+
+                if (!log.eventHash || log.eventHash !== expectedHash || log.previousHash !== previousHash) {
+                    updates.push({
+                        id: log.id,
+                        eventHash: expectedHash,
+                        previousHash: previousHash,
+                    });
+                    backfilled++;
+                }
+                previousHash = expectedHash;
+                lastCursor = { id: log.id };
+            }
+
+            if (updates.length > 0) {
+                await prisma.$transaction(
+                    updates.map((u) =>
+                        logModel.update({
+                            where: { id: u.id },
+                            data: {
+                                eventHash: u.eventHash,
+                                previousHash: u.previousHash,
+                            },
+                        })
+                    )
+                );
+            }
+
+            if (logsChunk.length < CHUNK_SIZE) {
+                hasMore = false;
+            }
         }
 
         return NextResponse.json({
             success: true,
-            message: `Backfill complete. ${backfilled} of ${allLogs.length} logs updated.`,
+            message: `Backfill complete. ${backfilled} of ${total} logs updated.`,
             backfilled,
-            total: allLogs.length,
+            total,
         });
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : "Unknown error";
