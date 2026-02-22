@@ -31,7 +31,7 @@ export async function GET() {
 
         // Prepare context for the AI
         const contextData = criticalLogs.map((l: any) =>
-            `[${l.level}] ${l.source}: ${l.message} (x${l.repeatCount || 0})`
+            `[${l.level}] ${l.timestamp.toISOString()} | IP/Source: ${l.ipAddress || l.source} | Msg: ${l.message} (x${l.repeatCount || 0})`
         ).join("\n");
 
         // Fetch all relevant AI settings
@@ -78,7 +78,7 @@ export async function GET() {
         Wenn ein Gerät abstürzt (z.B. OOM) oder bruteforced wird, schlage Alarm.
         Wenn es nur vereinzelt kleine Warnungen sind, stufe es als 'Stabil mit Auffälligkeiten' ein.
         
-        WICHTIG: Beende deinen Bericht immer mit einer kurzen Stichpunktliste (max. 3 Einträge) der konkreten gefundenen Auffälligkeiten (z.B. "Fehlgeschlagener Login von IP 10.x.x.x"), damit der Nutzer diese im Dashboard einfacher suchen kann.
+        WICHTIG: Beende deinen Bericht immer mit einer kurzen Stichpunktliste (max. 3 Einträge) der konkreten gefundenen Auffälligkeiten. Nenne pro Stichpunkt UNBEDINGT die genaue Uhrzeit (Timestamp) und IP/Quelle, damit der Nutzer diese 1:1 im Dashboard suchen kann! (z.B. "- [2024-10-12T14:32:00Z] 10.0.0.5: SSH Login fehlgeschlagen").
         
         LOGS:
         ${contextData}`;
