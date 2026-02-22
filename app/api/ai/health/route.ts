@@ -34,14 +34,43 @@ export async function GET() {
             `[${l.level}] ${l.source}: ${l.message} (x${l.repeatCount || 0})`
         ).join("\n");
 
-        // Use the settings from database
+        // Fetch all relevant AI settings
         const settings = await prisma.setting.findMany({
-            where: { key: { in: ["AI_PROVIDER", "AI_API_KEY", "AI_MODEL", "AI_ENDPOINT"] } }
+            where: {
+                key: {
+                    in: [
+                        "AI_ACTIVE_PROVIDER",
+                        "SECRET_OPENAI_KEY", "AI_OPENAI_MODEL",
+                        "SECRET_ANTHROPIC_KEY", "AI_ANTHROPIC_MODEL",
+                        "SECRET_GEMINI_KEY", "AI_GEMINI_MODEL",
+                        "SECRET_MISTRAL_KEY", "AI_MISTRAL_MODEL",
+                        "AI_LOCAL_URL", "AI_LOCAL_MODEL"
+                    ]
+                }
+            }
         });
         const config = settings.reduce((acc: any, curr: any) => ({ ...acc, [curr.key]: curr.value }), {});
 
-        if (!config.AI_API_KEY) {
-            return NextResponse.json({ error: "AI not configured" }, { status: 400 });
+        const provider = config.AI_ACTIVE_PROVIDER || "openai";
+        let apiKey = "";
+        let model = "";
+
+        if (provider === "openai") {
+            apiKey = config.SECRET_OPENAI_KEY;
+            model = config.AI_OPENAI_MODEL || "gpt-4o";
+        } else if (provider === "anthropic") {
+            apiKey = config.SECRET_ANTHROPIC_KEY;
+            model = config.AI_ANTHROPIC_MODEL || "claude-3-5-sonnet-20241022";
+        } else if (provider === "gemini") {
+            apiKey = config.SECRET_GEMINI_KEY;
+            model = config.AI_GEMINI_MODEL || "gemini-1.5-flash";
+        } else if (provider === "mistral") {
+            apiKey = config.SECRET_MISTRAL_KEY;
+            model = config.AI_MISTRAL_MODEL || "mistral-large-latest";
+        }
+
+        if (!apiKey && provider !== "local") {
+            return NextResponse.json({ error: "AI not configured for active provider" }, { status: 400 });
         }
 
         const prompt = `Du bist ein professioneller DevOps & Security Analyst. Lese die folgenden kritischen Vorfälle der letzten 24 Stunden. 
@@ -54,31 +83,57 @@ export async function GET() {
 
         let report = "";
 
-        // Very basic implementation: calling OpenAI since the prompt structure matches the default analyst
-        // Extracting logic directly to avoid changing existing analyzeLog signature
-        const apiUrl = config.AI_ENDPOINT || "https://api.openai.com/v1/chat/completions";
-        const model = config.AI_MODEL || "gpt-3.5-turbo";
-
-        const aiResponse = await fetch(apiUrl, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${config.AI_API_KEY}`
-            },
-            body: JSON.stringify({
-                model,
-                messages: [{ role: "user", content: prompt }],
-                max_tokens: 150,
-                temperature: 0.3
-            })
-        });
-
-        if (!aiResponse.ok) {
-            throw new Error(`AI API failed: ${aiResponse.statusText}`);
+        if (provider === "openai") {
+            const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
+                body: JSON.stringify({ model, messages: [{ role: "user", content: prompt }], max_tokens: 150, temperature: 0.3 })
+            });
+            if (!aiResponse.ok) throw new Error(`OpenAI API failed: ${aiResponse.statusText}`);
+            const data = await aiResponse.json();
+            report = data.choices?.[0]?.message?.content || "Keine Analyse möglich.";
         }
-
-        const data = await aiResponse.json();
-        report = data.choices?.[0]?.message?.content || "Keine Analyse möglich.";
+        else if (provider === "anthropic") {
+            const aiResponse = await fetch("https://api.anthropic.com/v1/messages", {
+                method: "POST",
+                headers: { "x-api-key": apiKey, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+                body: JSON.stringify({ model, messages: [{ role: "user", content: prompt }], max_tokens: 150 })
+            });
+            if (!aiResponse.ok) throw new Error(`Anthropic API failed: ${aiResponse.statusText}`);
+            const data = await aiResponse.json();
+            report = data.content?.[0]?.text || "Keine Analyse möglich.";
+        }
+        else if (provider === "gemini") {
+            const aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            });
+            if (!aiResponse.ok) throw new Error(`Gemini API failed: ${aiResponse.statusText}`);
+            const data = await aiResponse.json();
+            report = data.candidates?.[0]?.content?.parts?.[0]?.text || "Keine Analyse möglich.";
+        }
+        else if (provider === "mistral") {
+            const aiResponse = await fetch("https://api.mistral.ai/v1/chat/completions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
+                body: JSON.stringify({ model, messages: [{ role: "user", content: prompt }], max_tokens: 150, temperature: 0.3 })
+            });
+            if (!aiResponse.ok) throw new Error(`Mistral API failed: ${aiResponse.statusText}`);
+            const data = await aiResponse.json();
+            report = data.choices?.[0]?.message?.content || "Keine Analyse möglich.";
+        }
+        else if (provider === "local") {
+            const localUrl = config.AI_LOCAL_URL || "http://localhost:11434";
+            const aiResponse = await fetch(`${localUrl}/api/generate`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ model: config.AI_LOCAL_MODEL || "llama3", prompt: prompt, stream: false })
+            });
+            if (!aiResponse.ok) throw new Error(`Local LLM failed: ${aiResponse.statusText}`);
+            const data = await aiResponse.json();
+            report = data.response || "Keine Analyse möglich.";
+        }
 
         const isCritical = report.toLowerCase().includes("alarm") || report.toLowerCase().includes("kritisch") || report.toLowerCase().includes("angriff");
         const status = isCritical ? "critical" : "warning";
