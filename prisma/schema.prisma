@@ -20,6 +20,7 @@ model Log {
   ipAddress      String?
   metadata       String?  @db.Text
   isAiAnalyzed   Boolean  @default(false)
+  repeatCount    Int      @default(0)
   eventHash      String?
   previousHash   String?
 }

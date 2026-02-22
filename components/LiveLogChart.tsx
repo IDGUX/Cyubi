@@ -8,11 +8,13 @@ import { useTranslation } from "@/lib/translations";
 interface LogData {
     timestamp: string;
     level: string;
+    repeatCount?: number;
 }
 
 interface ChartData {
     time: string;
     total: number;
+    warnings: number;
     errors: number;
 }
 
@@ -21,28 +23,32 @@ export default function LiveLogChart({ logs }: { logs: LogData[] }) {
     const [data, setData] = useState<ChartData[]>([]);
 
     useEffect(() => {
-        // Group logs by minute (last 15 minutes)
+        // Group logs by minute (last 60 minutes)
         const now = new Date();
-        const groups: Record<string, { total: number; errors: number }> = {};
+        const groups: Record<string, { total: number; warnings: number; errors: number }> = {};
 
-        // Initialize last 15 minutes with 0
-        for (let i = 14; i >= 0; i--) {
+        // Initialize last 60 minutes with 0
+        for (let i = 59; i >= 0; i--) {
             const d = new Date(now.getTime() - i * 60000);
             const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            groups[timeStr] = { total: 0, errors: 0 };
+            groups[timeStr] = { total: 0, warnings: 0, errors: 0 };
         }
 
         if (logs && logs.length > 0) {
             logs.forEach(log => {
                 const d = new Date(log.timestamp);
-                // Only consider logs from last 15 mins
-                if (now.getTime() - d.getTime() > 15 * 60000) return;
+                // Only consider logs from last 60 mins
+                if (now.getTime() - d.getTime() > 60 * 60000) return;
 
                 const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 if (groups[timeStr]) {
-                    groups[timeStr].total += 1;
-                    if (['ERROR', 'CRITICAL', 'ALERT', 'EMERGENCY', 'WARN'].includes(log.level)) {
-                        groups[timeStr].errors += 1;
+                    const count = (log.repeatCount || 0) + 1;
+                    groups[timeStr].total += count;
+
+                    if (['ERROR', 'CRITICAL', 'ALERT', 'EMERGENCY'].includes(log.level)) {
+                        groups[timeStr].errors += count;
+                    } else if (log.level === 'WARN') {
+                        groups[timeStr].warnings += count;
                     }
                 }
             });
@@ -51,6 +57,7 @@ export default function LiveLogChart({ logs }: { logs: LogData[] }) {
         const formattedData = Object.entries(groups).map(([time, val]) => ({
             time,
             total: val.total,
+            warnings: val.warnings,
             errors: val.errors
         }));
 
@@ -78,6 +85,10 @@ export default function LiveLogChart({ logs }: { logs: LogData[] }) {
                                 <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
                                 <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                             </linearGradient>
+                            <linearGradient id="colorWarning" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#eab308" stopOpacity={0.3} />
+                                <stop offset="95%" stopColor="#eab308" stopOpacity={0} />
+                            </linearGradient>
                             <linearGradient id="colorError" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
                                 <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
@@ -89,7 +100,7 @@ export default function LiveLogChart({ logs }: { logs: LogData[] }) {
                             stroke="rgba(255,255,255,0.2)"
                             tick={{ fontSize: 10 }}
                             tickLine={false}
-                            interval={4}
+                            interval={9}
                         />
                         <Tooltip
                             contentStyle={{ backgroundColor: '#09090b', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '12px' }}
@@ -103,6 +114,16 @@ export default function LiveLogChart({ logs }: { logs: LogData[] }) {
                             fillOpacity={1}
                             fill="url(#colorTotal)"
                             name={t("total")}
+                            animationDuration={1000}
+                        />
+                        <Area
+                            type="monotone"
+                            dataKey="warnings"
+                            stroke="#eab308"
+                            strokeWidth={2}
+                            fillOpacity={1}
+                            fill="url(#colorWarning)"
+                            name="Warnings"
                             animationDuration={1000}
                         />
                         <Area

@@ -35,6 +35,35 @@ export async function POST(req: Request) {
             console.warn("Pulse/Source resolution failed:", (e as any).message);
         }
 
+        // 2. Deduplication Check (Anti-Spam)
+        try {
+            const logModel = getLogModel(prisma);
+            const tenSecondsAgo = new Date(Date.now() - 10000);
+
+            const recentDuplicate = await logModel.findFirst({
+                where: {
+                    source: resolvedSource,
+                    message: message,
+                    timestamp: { gte: tenSecondsAgo }
+                },
+                orderBy: { timestamp: "desc" }
+            });
+
+            if (recentDuplicate) {
+                // Identical log found recently. Increment repeatCount and skip the rest.
+                const updatedLog = await logModel.update({
+                    where: { id: recentDuplicate.id },
+                    data: {
+                        repeatCount: { increment: 1 },
+                        timestamp: new Date() // Update timestamp to reflect the latest occurrence
+                    }
+                });
+                return NextResponse.json(updatedLog);
+            }
+        } catch (e) {
+            console.warn("Deduplication check failed:", (e as any).message);
+        }
+
         // 3. intelligent Analysis
         const analysis = await analyzeLog(message, resolvedSource);
 

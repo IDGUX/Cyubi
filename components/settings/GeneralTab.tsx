@@ -4,6 +4,7 @@ import {
     Bell, Shield, Trash2, Plus, Globe, Terminal,
     Monitor, Activity, Settings,
 } from "lucide-react";
+import ArchiveView from "./ArchiveView";
 import type { UseSettingsReturn } from "./useSettings";
 
 type Props = Pick<UseSettingsReturn,
@@ -232,6 +233,9 @@ export default function GeneralTab(props: Props) {
                             )}
                         </div>
                     </div>
+
+                    {/* Archive Feature */}
+                    <ArchiveView />
 
                     {/* Security */}
                     <div className="space-y-4 pt-6 border-t border-white/5">

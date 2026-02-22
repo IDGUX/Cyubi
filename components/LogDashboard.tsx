@@ -8,6 +8,7 @@ import LiveLogChart from "./LiveLogChart";
 import SecurityScore from "./SecurityScore";
 import ShareModal from "./ShareModal";
 import StorageWarning from "./StorageWarning";
+import AIHealthReport from "./AIHealthReport";
 import { Search, Activity, Shield, Settings, List, Terminal, Share2, FileText, CheckCircle, XCircle, Download, X, Link } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -116,7 +117,10 @@ export default function LogDashboard() {
 
     return (
         <div className="space-y-8 animate-in fade-in duration-700">
-            <StorageWarning />
+            <div className="space-y-4">
+                <StorageWarning />
+                <AIHealthReport />
+            </div>
 
             {/* View Switcher & Toolbar */}
             <div className="flex flex-col sm:flex-row justify-between items-center bg-white/5 border border-white/10 p-2 rounded-2xl gap-4">

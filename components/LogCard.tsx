@@ -15,6 +15,7 @@ interface Log {
     deviceType?: string;
     ipAddress?: string;
     isAiAnalyzed?: boolean;
+    repeatCount?: number;
 }
 
 const categoryIcons: Record<string, any> = {
@@ -96,6 +97,11 @@ export default function LogCard({ log: initialLog }: { log: Log }) {
                             {log.ipAddress && (
                                 <span className="text-[10px] text-white/40 font-mono bg-blue-500/5 px-2 py-0.5 rounded border border-blue-500/20">
                                     {t("ipAddress")}: {log.ipAddress}
+                                </span>
+                            )}
+                            {(log.repeatCount ?? 0) > 0 && (
+                                <span className="text-[10px] text-orange-400 font-bold bg-orange-500/10 px-2 py-0.5 rounded-full border border-orange-500/30 animate-pulse" title="Dieses Log wurde mehrfach in kurzer Zeit empfangen und zusammengefasst, um Datenbank-Spam zu verhindern.">
+                                    Wiederholt: {log.repeatCount}x
                                 </span>
                             )}
                             <span className="text-[10px] text-white/20">•</span>
