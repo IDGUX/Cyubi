@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Sparkles, Activity, AlertTriangle, ShieldCheck, RefreshCw } from "lucide-react";
 
-export default function AIHealthReport() {
+export default function AIHealthReport({ onSearch }: { onSearch?: (query: string) => void }) {
     const [report, setReport] = useState<string | null>(null);
     const [status, setStatus] = useState<"healthy" | "warning" | "critical" | "unknown">("unknown");
     const [isLoading, setIsLoading] = useState(false);
@@ -48,6 +48,40 @@ export default function AIHealthReport() {
 
     const StatusIcon = status === "healthy" ? ShieldCheck : status === "critical" ? AlertTriangle : Activity;
 
+    // Parses the report to make [Timestamp] IP: clickable
+    const renderReport = (text: string) => {
+        if (!onSearch) return <p className="text-sm font-medium mt-1 leading-relaxed opacity-90">{text}</p>;
+
+        const parts = text.split(/(-\s*\[\s*\d{4}-\d{2}-\d{2}T.*?Z\s*\].*)/gi);
+
+        return (
+            <div className="text-sm font-medium mt-1 leading-relaxed opacity-90 space-y-2">
+                {parts.map((part, i) => {
+                    if (part.trim().startsWith("- [") || part.trim().startsWith("-[")) {
+                        // Extract the IP or Source to search for
+                        const match = part.match(/\[(.*?)\]\s*([^:]+):/);
+                        const searchQuery = match ? `${match[2].trim()}` : part.replace(/-\s*\[.*?\]/, "").trim();
+
+                        return (
+                            <button
+                                key={i}
+                                onClick={() => {
+                                    if (onSearch) onSearch(searchQuery);
+                                    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                                }}
+                                className="block w-full text-left p-2 rounded-xl bg-black/20 hover:bg-white/10 border border-white/5 hover:border-white/20 transition-all group flex items-start gap-2"
+                            >
+                                <span className="text-purple-400 mt-0.5"><Sparkles size={14} className="group-hover:scale-110 transition-transform" /></span>
+                                <span className="text-white/80 group-hover:text-white">{part.replace(/^-\s*/, '')}</span>
+                            </button>
+                        );
+                    }
+                    return <span key={i}>{part}</span>;
+                })}
+            </div>
+        );
+    };
+
     return (
         <div className={`p-5 rounded-2xl border transition-all ${getStatusColors()} relative overflow-hidden group`}>
             {/* Background Glow */}
@@ -56,11 +90,11 @@ export default function AIHealthReport() {
             `} />
 
             <div className="flex items-start justify-between gap-4 relative z-10">
-                <div className="flex gap-4 items-start">
-                    <div className="p-2 bg-black/20 rounded-xl">
+                <div className="flex gap-4 items-start w-full">
+                    <div className="p-2 bg-black/20 rounded-xl shrink-0">
                         <StatusIcon size={24} />
                     </div>
-                    <div>
+                    <div className="w-full">
                         <div className="flex items-center gap-2 mb-1">
                             <h2 className="text-sm font-black uppercase tracking-widest">AI Health Monitor</h2>
                             <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-black/20 border border-white/10">
@@ -77,7 +111,7 @@ export default function AIHealthReport() {
                         ) : error ? (
                             <p className="text-xs opacity-70 mt-1">{error} (KI evtl. nicht konfiguriert)</p>
                         ) : report ? (
-                            <p className="text-sm font-medium mt-1 leading-relaxed opacity-90">{report}</p>
+                            renderReport(report)
                         ) : (
                             <p className="text-xs opacity-70 mt-1">Lade Systemstatus...</p>
                         )}
@@ -87,7 +121,7 @@ export default function AIHealthReport() {
                 <button
                     onClick={fetchReport}
                     disabled={isLoading}
-                    className="p-2 bg-black/20 hover:bg-black/40 rounded-xl transition-all disabled:opacity-50"
+                    className="p-2 bg-black/20 hover:bg-black/40 rounded-xl transition-all disabled:opacity-50 shrink-0"
                     title="Aktualisieren"
                 >
                     <RefreshCw size={16} className={isLoading ? "animate-spin" : ""} />

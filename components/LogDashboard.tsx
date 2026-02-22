@@ -119,7 +119,7 @@ export default function LogDashboard() {
         <div className="space-y-8 animate-in fade-in duration-700">
             <div className="space-y-4">
                 <StorageWarning />
-                <AIHealthReport />
+                <AIHealthReport onSearch={setSearch} />
             </div>
 
             {/* View Switcher & Toolbar */}
