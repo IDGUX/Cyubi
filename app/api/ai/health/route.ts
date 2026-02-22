@@ -74,9 +74,11 @@ export async function GET() {
         }
 
         const prompt = `Du bist ein professioneller DevOps & Security Analyst. Lese die folgenden kritischen Vorfälle der letzten 24 Stunden. 
-        Deine Aufgabe: Fasse die Systemgesundheit GANZ KURZ (max 2-3 Sätze) zusammen. Ignoriere irrelevante Ausreißer.
+        Deine Aufgabe: Fasse die Systemgesundheit GANZ KURZ zusammen. Ignoriere irrelevante Ausreißer.
         Wenn ein Gerät abstürzt (z.B. OOM) oder bruteforced wird, schlage Alarm.
         Wenn es nur vereinzelt kleine Warnungen sind, stufe es als 'Stabil mit Auffälligkeiten' ein.
+        
+        WICHTIG: Beende deinen Bericht immer mit einer kurzen Stichpunktliste (max. 3 Einträge) der konkreten gefundenen Auffälligkeiten (z.B. "Fehlgeschlagener Login von IP 10.x.x.x"), damit der Nutzer diese im Dashboard einfacher suchen kann.
         
         LOGS:
         ${contextData}`;
